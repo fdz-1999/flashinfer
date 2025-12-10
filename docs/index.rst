@@ -29,6 +29,7 @@ FlashInfer is a library and kernel generator for Large Language Models that prov
    :caption: PyTorch API Reference
 
    api/attention
+   api/xqa
    api/gemm
    api/fused_moe
    api/cascade
@@ -43,4 +44,6 @@ FlashInfer is a library and kernel generator for Large Language Models that prov
    api/quantization
    api/green_ctx
    api/fp4_quantization
+   api/pod
+   api/utils
    api/testing
