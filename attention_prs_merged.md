@@ -1,0 +1,1694 @@
+# FlashInfer attention 相关已合入 PR（关键词检索汇总）
+
+- repo: flashinfer-ai/flashinfer
+- keywords: attention, fmha, prefill, decode, sdpa, xqa, mla, rope, rotary, "kv cache", flashattention, fa3, "paged attention", "context attention"
+- 本次去重后 PR 数: 529
+
+## 关键词命中统计（GitHub search issueCount / 实际抓取）
+
+- attention: issueCount=299 fetched=299
+- fmha: issueCount=77 fetched=77
+- prefill: issueCount=222 fetched=222
+- decode: issueCount=207 fetched=207
+- sdpa: issueCount=11 fetched=11
+- xqa: issueCount=28 fetched=28
+- mla: issueCount=117 fetched=117
+- rope: issueCount=51 fetched=51
+- rotary: issueCount=12 fetched=12
+- "kv cache": issueCount=135 fetched=135
+- flashattention: issueCount=8 fetched=8
+- fa3: issueCount=40 fetched=40
+- "paged attention": issueCount=43 fetched=43
+- "context attention": issueCount=27 fetched=27
+
+## 2025-12（31）
+
+- [#2233](https://github.com/flashinfer-ai/flashinfer/pull/2233) feat: Fused RMSNorm + FP4 Quantization Kernels in CuTe-DSL
+  - 合入时间: 2025-12-20T03:15:15Z
+  - 解决问题: Fused RMSNorm + FP4 Quantization Kernels (CuTe-DSL) This PR adds two high-performance fused kernels implemented in CuTe-DSL for Blackwell (…
+- [#2125](https://github.com/flashinfer-ai/flashinfer/pull/2125) feat: support variable sequence length in decode kernel of trtllm-gen attention
+  - 合入时间: 2025-12-20T03:09:04Z
+  - 解决问题: Fix #1832 This PR adds two extra parameters max_q_len and cum_seq_lens_q to flashinfer.decode.trtllm_batch_decode_with_kv_cache kernel to s…
+- [#2215](https://github.com/flashinfer-ai/flashinfer/pull/2215) feat: further optimize top-k and add fused top-k page construction kernels for DSA
+  - 合入时间: 2025-12-19T05:45:16Z
+  - 解决问题: Follow up of #2119 , this PR implements top_k_page_table_transform and top_k_ragged_transform function required for dsa in sglang.
+- [#2243](https://github.com/flashinfer-ai/flashinfer/pull/2243) feat: RMSNorm/Fused RMSNorm + FP8 Quantization kernels
+  - 合入时间: 2025-12-19T05:03:32Z
+  - 解决问题: FP8 model inference requires multiple intermediate quantization kernels, which can be avoided by fusing norm and quantization kernels.
+- [#2237](https://github.com/flashinfer-ai/flashinfer/pull/2237) [feat] Integrate SGLang concat_mla_k kernel into flashinfer
+  - 合入时间: 2025-12-18T07:57:09Z
+  - 解决问题: Integrate SGLang optimized concat_mla_k kernel Add test as well as benchmark
+- [#2047](https://github.com/flashinfer-ai/flashinfer/pull/2047) Rebase FP8 SM100 Cutlass FMHA Attention to main (original PR#1238)
+  - 合入时间: 2025-12-17T20:47:31Z
+  - 解决问题: Just does a refresh of the FP8 Attention and adds benchmarks for Deepseek FMHA sizes.
+- [#2229](https://github.com/flashinfer-ai/flashinfer/pull/2229) misc: upgrade tvm-ffi dependency to 0.1.6
+  - 合入时间: 2025-12-17T15:43:56Z
+  - 解决问题: Fix #2226
+- [#2211](https://github.com/flashinfer-ai/flashinfer/pull/2211) Move the run function definition out of BatchedGemmInterface
+  - 合入时间: 2025-12-17T15:00:18Z
+  - 解决问题: Move the run function definition out of BatchedGemmInterface
+- [#2213](https://github.com/flashinfer-ai/flashinfer/pull/2213) feat: Cold L2 Cache Benchmarking with Rotating Buffers
+  - 合入时间: 2025-12-17T08:07:49Z
+  - 解决问题: Cold L2 Cache Benchmarking for CUDA Graphs Problem bench_gpu_time_with_cudagraph captures multiple kernel iterations within a graph to amor…
+- [#2214](https://github.com/flashinfer-ai/flashinfer/pull/2214) misc: support checks for gemm
+  - 合入时间: 2025-12-17T05:58:29Z
+  - 解决问题: Continuation of !2000
+- [#2035](https://github.com/flashinfer-ai/flashinfer/pull/2035) Added an initial implementation of Q and KV Cache in fp8 and to use t…
+  - 合入时间: 2025-12-16T21:07:13Z
+  - 解决问题: cudnn implementation for sdpa fp8 📌 Description Allows cudnn SDPA be called when q and kv are both fp8 Requires cudnn 9.18.0
+- [#2212](https://github.com/flashinfer-ai/flashinfer/pull/2212) cicd: Add sanity test script
+  - 合入时间: 2025-12-16T04:02:38Z
+  - 解决问题: This PR adds a sanity test script to use towards testing more CTK versions.
+- [#2102](https://github.com/flashinfer-ai/flashinfer/pull/2102) Port TRT-LLM communication kernels to flashinfer
+  - 合入时间: 2025-12-15T04:06:19Z
+  - 解决问题: This ports the latest MNNVL A2A communication implementation from TRT-LLM
+- [#2109](https://github.com/flashinfer-ai/flashinfer/pull/2109) feat: support more head dim in RoPE kernel
+  - 合入时间: 2025-12-12T21:21:17Z
+  - 解决问题: With the new changes we should be able to support arbitrary head dim using the RopeQuantizeKernel, and I have routed the BatchQKApplyRotary…
+- [#2118](https://github.com/flashinfer-ai/flashinfer/pull/2118) Refactor trtllm_mnnvl_allreduce
+  - 合入时间: 2025-12-12T19:28:03Z
+  - 解决问题: This PR porting all changes in TensorRT-LLM#8018 into Flashinfer.
+- [#2119](https://github.com/flashinfer-ai/flashinfer/pull/2119) perf: bunch of features and optimizations for top-k (sampling + sparse attention)
+  - 合入时间: 2025-12-12T07:59:14Z
+  - 解决问题: This PR implements several features and optimizations for top-k: Multi-CTA optimization Followup of #2044 , this PR optimizes the top-k/top…
+- [#2194](https://github.com/flashinfer-ai/flashinfer/pull/2194) Permute page table in benchmarking
+  - 合入时间: 2025-12-11T20:02:23Z
+  - 解决问题: This PR will permute page tables during benchmarking of different backends and ensure the correct page table gets passed to the backends.
+- [#2196](https://github.com/flashinfer-ai/flashinfer/pull/2196) docs: Fix inaccurate API docstrings for attention prefill
+  - 合入时间: 2025-12-11T07:33:28Z
+  - 解决问题: This PR addresses the documentation issues and adds proper validation for unsupported configurations in the attention prefill wrappers rais…
+- [#2189](https://github.com/flashinfer-ai/flashinfer/pull/2189) test: Skip sm90 test in test_jit_warmup.py if not on sm90
+  - 合入时间: 2025-12-09T05:16:51Z
+  - 解决问题: test_jit_warmup.py contains two tests test_warmpup_llama and test_warmpup_llama_sm90 where the _sm90 variant is the first one plus an addit…
+- [#2165](https://github.com/flashinfer-ai/flashinfer/pull/2165) Add data type check for deepseek fp4 moe
+  - 合入时间: 2025-12-06T10:55:20Z
+  - 解决问题: It's so important to have dtype check to ensure API callers use FlashInfer correctly.
+- [#2111](https://github.com/flashinfer-ai/flashinfer/pull/2111) refactor: update fa3 codebase and fix hopper unittest [part 1]
+  - 合入时间: 2025-12-06T03:31:41Z
+  - 解决问题: This PR refactors the out-dated fa3 codebase, more specifically, for page_size>1, the page offset calculation is performed inside the kerne…
+- [#2171](https://github.com/flashinfer-ai/flashinfer/pull/2171) Fix gemm allreduce two shot
+  - 合入时间: 2025-12-05T10:53:58Z
+  - 解决问题: Fix test_cute_dsl_gemm_allreduce_two_shot.py regression from nvidia-cutlass-dsl upgrade to 4.3.1 (removed helper functions) GB300 enabled f…
+- [#2163](https://github.com/flashinfer-ai/flashinfer/pull/2163) refactor: Move mla code from decode.py to mla.py and add to documentation
+  - 合入时间: 2025-12-05T10:53:16Z
+  - 解决问题: trtllm_batch_decode_with_kv_cache_mla and xqa_batch_decode_with_kv_cache_mla currently reside in decode.py.
+- [#2159](https://github.com/flashinfer-ai/flashinfer/pull/2159) feat: MxInt4 x Bf16 TRT-LLM Gen MoE support
+  - 合入时间: 2025-12-05T10:52:17Z
+  - 解决问题: Add the MxInt4 x BF16 TRTLLM GEN moe
+- [#2175](https://github.com/flashinfer-ai/flashinfer/pull/2175) fix: compile flags for trtllm fmha_v2 
+  - 合入时间: 2025-12-05T08:19:44Z
+  - 解决问题: fix: compile flags for trtllm fmha_v2
+- [#2149](https://github.com/flashinfer-ai/flashinfer/pull/2149) enable sm103 moe dsl backend
+  - 合入时间: 2025-12-04T17:56:43Z
+  - 解决问题: enable sm103 moe dsl backend bumped dep version nvidia-cutlass-dsl>=4.3.1
+- [#2172](https://github.com/flashinfer-ai/flashinfer/pull/2172) Update Docker CI tags to 20251203-1e15fed
+  - 合入时间: 2025-12-04T17:56:20Z
+  - 解决问题: This PR updates the Docker CI image tags to the latest version: 20251203-1e15fed Updated images: flashinfer/flashinfer-ci-cu126:20251203-1e…
+- [#2157](https://github.com/flashinfer-ai/flashinfer/pull/2157) fix xqa mha_sm90.cu
+  - 合入时间: 2025-12-04T01:36:30Z
+  - 解决问题: This PR fixes 2 things: 1 CUDA_ARCH is not defined in host code so xqa_wrapper.cu should use another macro 2 spec_q_seq_len is not included…
+- [#2160](https://github.com/flashinfer-ai/flashinfer/pull/2160) feat: C++ side tensor validation
+  - 合入时间: 2025-12-03T05:01:41Z
+  - 解决问题: Originally in this PR #1652 and #2127 we added better error messaging / prevent silent failures for wrong dtype / shape of tensors.
+- [#2153](https://github.com/flashinfer-ai/flashinfer/pull/2153) misc: Label APIs for Logging
+  - 合入时间: 2025-12-02T22:20:40Z
+  - 解决问题: FlashInfer's API Logging feature was enabled in #2108, but only decorated a small number of APIs with @flashinfer_api.
+- [#2155](https://github.com/flashinfer-ai/flashinfer/pull/2155) Bump tvm ffi version to 0.1.4
+  - 合入时间: 2025-12-02T08:28:42Z
+  - 解决问题: Bump tvm ffi version to 0.1.4 and use ffi::CUDADeviceGuard instead of cudaSetDevice.
+
+## 2025-11（48）
+
+- [#2142](https://github.com/flashinfer-ai/flashinfer/pull/2142) feat: TRTLLM FMHAv2 backend for ctx attention
+  - 合入时间: 2025-11-28T07:35:15Z
+  - 解决问题: Porting over the trtllm fmhav2 library to support prefill cases.
+- [#2089](https://github.com/flashinfer-ai/flashinfer/pull/2089) ci: Reduce test time by moving compilation off-line
+  - 合入时间: 2025-11-28T02:14:35Z
+  - 解决问题: Download flashinfer-cubin and flashinfer-jit-cache to avoid compilation.
+- [#2132](https://github.com/flashinfer-ai/flashinfer/pull/2132) feat: add seed offset args to sampler to allow cuda graph support
+  - 合入时间: 2025-11-26T00:32:21Z
+  - 解决问题: This PR adds optional seed/offset args to all the sampler functions to prevent calling the get_seed_and_offset function.
+- [#2138](https://github.com/flashinfer-ai/flashinfer/pull/2138) feat: add trtllm-gen per-tensor sparseMla kernels.
+  - 合入时间: 2025-11-25T19:07:11Z
+  - 解决问题: This MR adds trtllm-gen per-tensor sparseMla kernels.
+- [#2134](https://github.com/flashinfer-ai/flashinfer/pull/2134) fix(trtllm): reset negative strideBatch to 0 for ragged KV layout to …
+  - 合入时间: 2025-11-25T19:05:32Z
+  - 解决问题: Fix TMA descriptor failures for ragged KV layouts in the TRT-LLM FMHA path.
+- [#2137](https://github.com/flashinfer-ai/flashinfer/pull/2137) fix: some bugs of headDim 256 trtllm-gen fmha kernels. 
+  - 合入时间: 2025-11-25T19:05:16Z
+  - 解决问题: This MR updates the trtllm-gen cubins which fix several bugs of headDim 256 fmha kernels.
+- [#2126](https://github.com/flashinfer-ai/flashinfer/pull/2126) fix flaky xqa test
+  - 合入时间: 2025-11-25T01:03:11Z
+  - 解决问题: WIP.
+- [#2128](https://github.com/flashinfer-ai/flashinfer/pull/2128) fix: DeepSeek activation uninitialized data
+  - 合入时间: 2025-11-22T16:37:16Z
+  - 解决问题: fix: DeepSeek activation uninitialized data
+- [#2105](https://github.com/flashinfer-ai/flashinfer/pull/2105) enable xqa speculative decoding
+  - 合入时间: 2025-11-22T07:54:29Z
+  - 解决问题: Enable xqa with speculative decoding and add mask tensor in trtllm_batch_decode_with_kv_cache.
+- [#2127](https://github.com/flashinfer-ai/flashinfer/pull/2127) fix: add a check for int32 indices in sampling.py
+  - 合入时间: 2025-11-22T07:26:02Z
+  - 解决问题: New function to validate that the indices type, when provided, is int32.
+- [#2108](https://github.com/flashinfer-ai/flashinfer/pull/2108) feat: Enable API Logging for Better Debugging POC
+  - 合入时间: 2025-11-22T07:24:14Z
+  - 解决问题: tl; dr: Current PR adds a logging system for input/output tracking to aid debugging FlashInfer APIs via a @flashinfer_api decorator.
+- [#1979](https://github.com/flashinfer-ai/flashinfer/pull/1979) feat: Add backend='auto' to mm_fp4 and enable autotune for backend='cudnn'
+  - 合入时间: 2025-11-21T05:27:52Z
+  - 解决问题: Current PR: Introduces an auto backend to mm_fp4 that can be autotuned.
+- [#2112](https://github.com/flashinfer-ai/flashinfer/pull/2112) hotfix: add 9.0a to README and installation doc
+  - 合入时间: 2025-11-20T07:16:13Z
+  - 解决问题: 9.0a was removed from installation documentation by accident, in some recent PRs.
+- [#2110](https://github.com/flashinfer-ai/flashinfer/pull/2110) add tensor scale input for xqa
+  - 合入时间: 2025-11-20T06:36:45Z
+  - 解决问题: add tensor scale input for xqa
+- [#2117](https://github.com/flashinfer-ai/flashinfer/pull/2117) update xqa license
+  - 合入时间: 2025-11-20T06:34:29Z
+  - 解决问题: Update xqa license based on NVIDIA/TensorRT-LLM#8807
+- [#2114](https://github.com/flashinfer-ai/flashinfer/pull/2114) feature: make the LSE returned by MLA support base 2 or e  #2113
+  - 合入时间: 2025-11-20T02:47:57Z
+  - 解决问题: This pr adds a parameter return_lse_base_on_e to control the base of LSE returned by MLA.
+- [#2099](https://github.com/flashinfer-ai/flashinfer/pull/2099) [DSV3] Optimized routing kernels dsv3
+  - 合入时间: 2025-11-19T10:33:24Z
+  - 解决问题: [DSV3] Optimized routing kernels dsv3
+- [#2103](https://github.com/flashinfer-ai/flashinfer/pull/2103) test: Enable testing for trtllm-gen decode bs1
+  - 合入时间: 2025-11-19T05:10:28Z
+  - 解决问题: In #1898, it was raised that trtllm-gen's attention kernels fail for batch size 1.
+- [#2100](https://github.com/flashinfer-ai/flashinfer/pull/2100) [DSR1] Added MLA test
+  - 合入时间: 2025-11-19T02:17:00Z
+  - 解决问题: Added DSR1 MLA test, and split up the trtllm_batch_decode_mla function.
+- [#2084](https://github.com/flashinfer-ai/flashinfer/pull/2084) [API change] Allow using torch.Tensor for scales for trtllm-gen attention
+  - 合入时间: 2025-11-18T07:53:29Z
+  - 解决问题: change bmm1_scale and bmm2_scale to Union[float, torch.Tensor].
+- [#2037](https://github.com/flashinfer-ai/flashinfer/pull/2037) feat: Add flashinfer.rope.rope_quantize_fp8_append_paged_kv_cache (fused RoPE + Q + KV cache, supports MLA/GQA/MHA) 
+  - 合入时间: 2025-11-18T07:15:14Z
+  - 解决问题: Add flashinfer.rope.rope_quantize_fp8_append_paged_kv_cache, which runs a fused RoPE + Quantization (16 -> 8) + append KV Cache operation k…
+- [#2088](https://github.com/flashinfer-ai/flashinfer/pull/2088) refactor: update dpsk fused_moe test [1]
+  - 合入时间: 2025-11-16T06:01:17Z
+  - 解决问题: Refactor fused_moe test.
+- [#2092](https://github.com/flashinfer-ai/flashinfer/pull/2092) perf: TRT-LLM Gen finalize kernel optimization
+  - 合入时间: 2025-11-14T21:43:40Z
+  - 解决问题: Small optimization for TRT-LLM Gen MoE finalize kernel TopK=8, NumExperts=128, HiddenSize=4096 BS Baseline, us Optimized, us Speed-up
+- [#2079](https://github.com/flashinfer-ai/flashinfer/pull/2079) [Feature] Support batch prefill for POD Attention
+  - 合入时间: 2025-11-14T03:55:35Z
+  - 解决问题: Co-authored-by: @Edenzzzz 📌 Description Fixes #1022.
+- [#2028](https://github.com/flashinfer-ai/flashinfer/pull/2028) [NVIDIA] Thor & Spark Support
+  - 合入时间: 2025-11-13T09:54:43Z
+  - 解决问题: Thor and Spark support when wheels are generating
+- [#2083](https://github.com/flashinfer-ai/flashinfer/pull/2083) test: Change incorrect inputs in test_hopper.py
+  - 合入时间: 2025-11-13T04:17:10Z
+  - 解决问题: Brings in some changes to test_hopper.py to pass more unit tests test_deepseek_prefill --> Raise tolerance for bf16 inputs Others: The toke…
+- [#2080](https://github.com/flashinfer-ai/flashinfer/pull/2080) chore: update requires-python in pyproject.toml
+  - 合入时间: 2025-11-12T14:25:58Z
+  - 解决问题: When installing I ran into this error: × No solution found when resolving dependencies for split (markers: python_full_version == '3.9.*'):…
+- [#2081](https://github.com/flashinfer-ai/flashinfer/pull/2081) enable xqa fp8 output
+  - 合入时间: 2025-11-12T14:25:18Z
+  - 解决问题: This PR enables xqa to output fp8 tensors, and also adds an o_scale in args in interfaces in decode.py.
+- [#2076](https://github.com/flashinfer-ai/flashinfer/pull/2076) fix: fix test_trtllm_gen_attention when max_seq_len < page_size
+  - 合入时间: 2025-11-12T05:29:05Z
+  - 解决问题: fix: fix test_trtllm_gen_attention when max_seq_len < page_size
+- [#2069](https://github.com/flashinfer-ai/flashinfer/pull/2069) minor: canonicalize TFLOPS calculation 
+  - 合入时间: 2025-11-12T03:40:04Z
+  - 解决问题: minor: canonicalize TFLOPS calculation
+- [#2075](https://github.com/flashinfer-ai/flashinfer/pull/2075) unittest: improve the efficiency of xqa unittests
+  - 合入时间: 2025-11-11T15:55:13Z
+  - 解决问题: The implementation of xqa unittests are sub-optimal: we use lots of cpu index calculation and slicing operations.
+- [#2053](https://github.com/flashinfer-ai/flashinfer/pull/2053) feat: add xqa mla backend
+  - 合入时间: 2025-11-10T15:07:31Z
+  - 解决问题: add xqa mla backend and corresponding unittests
+- [#2064](https://github.com/flashinfer-ai/flashinfer/pull/2064) refactor: remove MetaInfoHash class
+  - 合入时间: 2025-11-09T23:14:06Z
+  - 解决问题: This class is not required after @jimmyzho 's refactor work in https://github.com/flashinfer-ai/flashinfer/pull/1967/files, and the only re…
+- [#2062](https://github.com/flashinfer-ai/flashinfer/pull/2062) Fix: several bugs/issues with trtllm-gen attention kernels. 
+  - 合入时间: 2025-11-09T00:34:35Z
+  - 解决问题: This MR fixes: unspecified cuda launch errors with 2CTA MLA kernels masking bug of SWA decode kernels.
+- [#2063](https://github.com/flashinfer-ai/flashinfer/pull/2063) perf: TRT-LLM MoE Block-FP8 activation optimization
+  - 合入时间: 2025-11-08T06:14:05Z
+  - 解决问题: Small optimization to the activation kernel for block-FP8 MoE for large batch size.
+- [#2019](https://github.com/flashinfer-ai/flashinfer/pull/2019) [DSV3] Optimized Router Gemm
+  - 合入时间: 2025-11-07T22:52:59Z
+  - 解决问题: This PR: adds an optimized router gemm for problem sizes such as Deep Seek-V3.
+- [#2058](https://github.com/flashinfer-ai/flashinfer/pull/2058) perf: Optimize helper max/minmax function in sampling.cuh
+  - 合入时间: 2025-11-07T19:50:59Z
+  - 解决问题: Apply optimizations similar to #2044 to max/min functions.
+- [#2029](https://github.com/flashinfer-ai/flashinfer/pull/2029) feat: suitable_auto_backends to prune auto backends, bmm_fp8 refactor, heuristic_func intake
+  - 合入时间: 2025-11-07T17:17:57Z
+  - 解决问题: feat: suitable_auto_backends to prune auto backends, bmm_fp8 refactor, heuristic_func intake
+- [#2055](https://github.com/flashinfer-ai/flashinfer/pull/2055) misc: Add XQA decode to microbenchmark for sm90 and sm120
+  - 合入时间: 2025-11-07T07:07:02Z
+  - 解决问题: In #2001 , XQA decode kernels became available through trtllm_batch_decode_with_kv_cache on SM90 and SM120.
+- [#2044](https://github.com/flashinfer-ai/flashinfer/pull/2044) perf: improve sampling/mask/softmax performance (part 1/2)
+  - 合入时间: 2025-11-07T00:58:30Z
+  - 解决问题: This is the first part of the performance improvement PR for sampling/mask/softmax operator, in this PR, we defer the cross thread reductio…
+- [#2049](https://github.com/flashinfer-ai/flashinfer/pull/2049) [BUG] Fix trtllm-gen fp4 moe renormalize routing
+  - 合入时间: 2025-11-06T21:33:34Z
+  - 解决问题: Temporarily disable routingIndicesBlockKernel as it's not compatible with the current packing format (topk-id and expert weights are packed…
+- [#1984](https://github.com/flashinfer-ai/flashinfer/pull/1984) chore: Update CODEOWNERS
+  - 合入时间: 2025-11-06T07:29:17Z
+  - 解决问题: Summary This PR updates the CODEOWNERS file based on git commit history analysis from the last 180 days.
+- [#1955](https://github.com/flashinfer-ai/flashinfer/pull/1955) Update trtllm-gen fused moe routing kernel and add more kernels
+  - 合入时间: 2025-11-06T06:06:31Z
+  - 解决问题: co-work with @IwakuraRein update the trtllm-gen fused moe headers add new kernels for trtllm-gen fused moe for NvFp4, add tile 256 for MxFp…
+- [#2033](https://github.com/flashinfer-ai/flashinfer/pull/2033) use scalar for kv_scale in xqa
+  - 合入时间: 2025-11-05T06:26:02Z
+  - 解决问题: use scalar for kv_scale in xqa
+- [#2015](https://github.com/flashinfer-ai/flashinfer/pull/2015) Support cc common check decorator for empty backends
+  - 合入时间: 2025-11-05T06:08:19Z
+  - 解决问题: Support cc common check decorator for empty backends
+- [#2038](https://github.com/flashinfer-ai/flashinfer/pull/2038) test: Mark test_fp8_prefill.py as xfail on SM90
+  - 合入时间: 2025-11-04T22:48:01Z
+  - 解决问题: test_fp8_prefill.py is currently failing on SM90, but consumes too much time to run/fail, causing unit-tests to time out.
+- [#2018](https://github.com/flashinfer-ai/flashinfer/pull/2018) test: Enable xfailed trtllm decode long seqlen tests and update microbenchmark
+  - 合入时间: 2025-11-02T06:31:36Z
+  - 解决问题: tests/attention/test_trtllm_gen_attention.py was failing and therefore marked xfail.
+- [#2001](https://github.com/flashinfer-ai/flashinfer/pull/2001) feat: add xqa backend and completes NHD/HND coverage for trtllm-gen/xqa backend
+  - 合入时间: 2025-11-02T01:06:42Z
+  - 解决问题: Expose xqa backend to trtllm attention interface, and improve layout coverage of trtllm-gen and xqa backends.
+
+## 2025-10（37）
+
+- [#2013](https://github.com/flashinfer-ai/flashinfer/pull/2013) More realistic bench for POD Attn
+  - 合入时间: 2025-10-31T06:48:56Z
+  - 解决问题: Use real head sizes, seq lens and add comparison with sequential prefill + decode.
+- [#2002](https://github.com/flashinfer-ai/flashinfer/pull/2002) Fix trtllm-gen attention illegal memory access
+  - 合入时间: 2025-10-29T21:45:00Z
+  - 解决问题: This PR fixes illegal memory access of trtllm-gen attention kernels.
+- [#1980](https://github.com/flashinfer-ai/flashinfer/pull/1980) feat: autotune tile_tokens_dim in trtllm-gen MOE
+  - 合入时间: 2025-10-29T06:47:25Z
+  - 解决问题: Update the autotune logic in trtllm-gen moe.
+- [#1999](https://github.com/flashinfer-ai/flashinfer/pull/1999) unittest: Add head dim 256 test cases and mark as xfail
+  - 合入时间: 2025-10-29T06:10:26Z
+  - 解决问题: Adding unit test for head_dim=256 cases for trtllm-gen decode and marking them as xfail.
+- [#1973](https://github.com/flashinfer-ai/flashinfer/pull/1973) Feature: Add support for L40 FusedMoE in cutlass path
+  - 合入时间: 2025-10-29T00:36:49Z
+  - 解决问题: Fixed a few compilation issues for L40, and removed 1 gemm tactic for sm == 89 that crashes due to: Assertion failed: GPU lacks the shared…
+- [#1994](https://github.com/flashinfer-ai/flashinfer/pull/1994) minor fix for xqa
+  - 合入时间: 2025-10-28T23:48:03Z
+  - 解决问题: 1 change xqa_mla comments to be consistent with mla instead of mha.
+- [#1991](https://github.com/flashinfer-ai/flashinfer/pull/1991) Added workspace check and reflected this in test
+  - 合入时间: 2025-10-28T21:56:14Z
+  - 解决问题: This PR attempts to fix #1986 (to be confirmed by requester) The issue is that num_tokens was larger than MAX_TOKEN_NUM, which results in a…
+- [#1998](https://github.com/flashinfer-ai/flashinfer/pull/1998) unittest: Add SM arch checks to skip unsupported tests on Hopper
+  - 合入时间: 2025-10-28T21:20:44Z
+  - 解决问题: A number of unit tests fail on Hopper because they either do not have a support-check or fail based on "what is not supported" while missin…
+- [#1952](https://github.com/flashinfer-ai/flashinfer/pull/1952) unittest: fix failed unittest on hopper
+  - 合入时间: 2025-10-28T04:44:39Z
+  - 解决问题: Some invalid configuration are generated in JIT warmup (mixed precision) function gen_prefill_attention_modules.
+- [#1769](https://github.com/flashinfer-ai/flashinfer/pull/1769) feat: add xqa fp8 mha and fp8 kv cache
+  - 合入时间: 2025-10-27T22:56:29Z
+  - 解决问题: Add xqa fp8 mha and fp8 kv cache.
+- [#1982](https://github.com/flashinfer-ai/flashinfer/pull/1982) fix: correct PDL parameter handling in RopeQuantize kernel
+  - 合入时间: 2025-10-26T17:22:39Z
+  - 解决问题: 1.
+- [#1969](https://github.com/flashinfer-ai/flashinfer/pull/1969) feat: enable deepgemm jit for fp8 block-scale on SM90
+  - 合入时间: 2025-10-26T06:26:37Z
+  - 解决问题: Enable JIT compile for the FP8 DeepGEMM kernels, NVRTC is currently disabled it uses NVCC by default.
+- [#1978](https://github.com/flashinfer-ai/flashinfer/pull/1978) fix: Skipping attention sink Blackwell test outside of Blackwell
+  - 合入时间: 2025-10-24T23:30:44Z
+  - 解决问题: test_attention_sink_blackwell.py checks flashinfer.prefill.trtllm_batch_context_with_kv_cache and flashinfer.decode.trtllm_batch_decode_wit…
+- [#1976](https://github.com/flashinfer-ai/flashinfer/pull/1976) fix: Make attention microbenchmark correctly use page table
+  - 合入时间: 2025-10-24T20:03:08Z
+  - 解决问题: Current microbenchmark code does not provides instantiated block_tables to all backends.
+- [#1960](https://github.com/flashinfer-ai/flashinfer/pull/1960) Bump tvm ffi to stable version 0.1.0
+  - 合入时间: 2025-10-24T11:14:19Z
+  - 解决问题: This PR bumps the tvm-ffi to stable version 0.1.0 and update the flashinfer code base.
+- [#1950](https://github.com/flashinfer-ai/flashinfer/pull/1950) unittest: fix test_artifacts.py
+  - 合入时间: 2025-10-23T16:04:43Z
+  - 解决问题: This PR fixes the test suite broken by #1761 , which introduced checksum validation for downloaded artifacts.
+- [#1967](https://github.com/flashinfer-ai/flashinfer/pull/1967) misc: Update artifacts docstring and MetaInfoHash
+  - 合入时间: 2025-10-23T06:59:16Z
+  - 解决问题: Amendment to PR 1761, appending docstring to two artifactory path classes and deprecating need to update MetaInfoHash by directly accessing…
+- [#1831](https://github.com/flashinfer-ai/flashinfer/pull/1831) Update the routing for TRTLLMGEN to support kimi k2 and qwen
+  - 合入时间: 2025-10-22T16:06:45Z
+  - 解决问题: Update the routing code to align with the implementation in TRTLLM and add support for KIMI K2 and Qwen Also revised the unit test based on…
+- [#1912](https://github.com/flashinfer-ai/flashinfer/pull/1912) fix: Fix trtllm-gen prefill IMA when batch_size==1
+  - 合入时间: 2025-10-21T03:23:03Z
+  - 解决问题: Current PR fixes the test and benchmark codes IMAs when running trtllm-gen paged & ragged prefill with batch size 1 -- the issue was descri…
+- [#1948](https://github.com/flashinfer-ai/flashinfer/pull/1948) Fix #1641: Use `/usr/local/cuda` as default `CUDA_HOME` if possible, like `torch.utils.cpp_extension.CUDA_HOME`
+  - 合入时间: 2025-10-20T03:32:58Z
+  - 解决问题: Fix #1641: Use /usr/local/cuda as default CUDA_HOME if possible, like torch.utils.cpp_extension.CUDA_HOME 📌 Description Before 1641, torch.…
+- [#1930](https://github.com/flashinfer-ai/flashinfer/pull/1930) fix get max_q_len in page prefill plan
+  - 合入时间: 2025-10-18T07:49:39Z
+  - 解决问题: the plan method in BatchPrefillWithPagedKVCacheWrapper will compute max query len by using qo_indptr_host.
+- [#1942](https://github.com/flashinfer-ai/flashinfer/pull/1942) Add realistic bench for persistent kernel 
+  - 合入时间: 2025-10-18T03:07:32Z
+  - 解决问题: Previous discussion with @yzh119 included wrong results due to not skipping the module load overhead in plan().
+- [#1924](https://github.com/flashinfer-ai/flashinfer/pull/1924) MLA RoPE + quantization fused kernel: shape generalization for MHA / GQA
+  - 合入时间: 2025-10-18T02:15:26Z
+  - 解决问题: Generalize the existing MLA RoPE+Q fused kernels to support GQA/MHA problem shapes.
+- [#1761](https://github.com/flashinfer-ai/flashinfer/pull/1761) misc: checksum check when downloading artifacts
+  - 合入时间: 2025-10-14T00:25:58Z
+  - 解决问题: checks the sha256 hash when downloading cubins from artifactory, using the generated checksum.txt in each cubin directory.
+- [#1829](https://github.com/flashinfer-ai/flashinfer/pull/1829) feat: trtrllm-gen global scaled FP8 GEMMs
+  - 合入时间: 2025-10-11T06:08:01Z
+  - 解决问题: In low latency context, it is not uncommon to encounter memory bandwidth bound GEMMs with a tiny leading dimension M.
+- [#1897](https://github.com/flashinfer-ai/flashinfer/pull/1897) tests: Add batch size 1 cases to test_trtllm_gen_attention.py that fail, marked xfail
+  - 合入时间: 2025-10-09T20:51:14Z
+  - 解决问题: Trtllm-gen's attention kernels have been discovered to fail tests when batch size is 1.
+- [#1891](https://github.com/flashinfer-ai/flashinfer/pull/1891) misc: Various Updates to Attention Microbenchmark Suite
+  - 合入时间: 2025-10-09T06:08:45Z
+  - 解决问题: Current PR brings a host of updates to the the attention microbenchmark suites in flashinfer_benchmark.py testBatchPrefillWithPagedKVCacheW…
+- [#1878](https://github.com/flashinfer-ai/flashinfer/pull/1878) Tune kernel compilation parameters for https://github.com/flashinfer-ai/flashinfer/pull/1850 
+  - 合入时间: 2025-10-07T00:53:26Z
+  - 解决问题: A follow up to #1850 to adjust pipeline stage / tile size values for perf improvement (benchmarking results below).
+- [#1865](https://github.com/flashinfer-ai/flashinfer/pull/1865) Bugfix: fix o_strides in persistent kernel 
+  - 合入时间: 2025-10-05T20:47:12Z
+  - 解决问题: It will be buggy when q is non-contiguous (from torch.split)
+- [#1850](https://github.com/flashinfer-ai/flashinfer/pull/1850) Add head_dim=64 for blackwell cutlass fmha implementation
+  - 合入时间: 2025-10-03T23:14:17Z
+  - 解决问题: This PR adds support for head_dim=64 for blackwell cutlass fmha.
+- [#1843](https://github.com/flashinfer-ai/flashinfer/pull/1843) feat: add warp-level persistent qk norm
+  - 合入时间: 2025-10-03T23:12:18Z
+  - 解决问题: Recent models are using QK normalization right before RoPE and core self-attention (e.g., Qwen-3, Wan).
+- [#1825](https://github.com/flashinfer-ai/flashinfer/pull/1825) jit: add `-lcuda` to default ldflags
+  - 合入时间: 2025-10-03T21:04:17Z
+  - 解决问题: This PR add -lcuda to default ldflags instead of making it optional.
+- [#1851](https://github.com/flashinfer-ai/flashinfer/pull/1851) unittest: remove debug-print jit examples from unittest
+  - 合入时间: 2025-10-03T09:00:43Z
+  - 解决问题: The debug print statements in test_jit_examples unittests clutter the CI output, making it difficult to identify useful information.
+- [#1847](https://github.com/flashinfer-ai/flashinfer/pull/1847) Run tests individually
+  - 合入时间: 2025-10-03T01:47:27Z
+  - 解决问题: Tests now run individually instead as opposed to with entire directry This helps avoid IMAs to propagate to other tests Also moved unlisted…
+- [#1842](https://github.com/flashinfer-ai/flashinfer/pull/1842) bugfix: Change module path in test_pod_kernels.py
+  - 合入时间: 2025-10-02T02:23:23Z
+  - 解决问题: The series of code refactgor for tvm-ffi (e.g.
+- [#1836](https://github.com/flashinfer-ai/flashinfer/pull/1836) jit: add `get_object_paths` to JitSpec
+  - 合入时间: 2025-10-02T01:05:32Z
+  - 解决问题: This commit reverts changes in #1802, and adds a new method get_object_paths to JITSpec, which returns the paths of all compiled object fil…
+- [#1826](https://github.com/flashinfer-ai/flashinfer/pull/1826) Bugfix: Fix data hazard in persistent reduce
+  - 合入时间: 2025-10-01T07:15:45Z
+  - 解决问题: Same as in #1661
+
+## 2025-09（45）
+
+- [#1794](https://github.com/flashinfer-ai/flashinfer/pull/1794) chore: improved URL handling for CUBIN/artifacts downloads
+  - 合入时间: 2025-09-30T17:34:46Z
+  - 解决问题: Encountered some issues when adding some cubin's.
+- [#1778](https://github.com/flashinfer-ai/flashinfer/pull/1778) refactor: Test reorganization phase 2
+  - 合入时间: 2025-09-29T21:58:19Z
+  - 解决问题: This is the second phase of the test reorganization: Rather than using test lists, tests are now organized into directories, allowing to us…
+- [#1802](https://github.com/flashinfer-ai/flashinfer/pull/1802) fix: missing header include in decode kernel jit binding
+  - 合入时间: 2025-09-29T18:14:28Z
+  - 解决问题: This commit adds the missing include of the header decode.cuh in the JIT binding csrc/batch_decode.cu, without this fix, there will be link…
+- [#1795](https://github.com/flashinfer-ai/flashinfer/pull/1795) refactor: cleanup codebase after tvm-ffi refactor
+  - 合入时间: 2025-09-29T07:00:37Z
+  - 解决问题: The codegen logic for pytorch and tvm should unify after #1641 , and this PR cleans up the related codegen functions in tvm_bindings.
+- [#1652](https://github.com/flashinfer-ai/flashinfer/pull/1652) fix: add _check_tensor_params to check correct sampling parameters and dtype validation in decode.py
+  - 合入时间: 2025-09-26T21:09:15Z
+  - 解决问题: This adds the _check_tensor_params function in sampling.py that is used in the different sampling functions to check that the parameters ma…
+- [#1771](https://github.com/flashinfer-ai/flashinfer/pull/1771) Waive / disable test_mla_decode_kernel.py::test_mla_decode_kernel for not sm80 
+  - 合入时间: 2025-09-25T22:24:24Z
+  - 解决问题: test_mla_decode_kernel.py::test_mla_decode_kernel uses use_tensor_cores=false, which calls the internal sm80 MLA decode kernel, which doesn…
+- [#1758](https://github.com/flashinfer-ai/flashinfer/pull/1758) Fix sink attention accuracy regression, add sink test and cleanup.
+  - 合入时间: 2025-09-25T05:06:46Z
+  - 解决问题: Update trtllm-gen cubin to fix accuracy regression about sink.
+- [#1755](https://github.com/flashinfer-ai/flashinfer/pull/1755) Fix tests/test_trtllm_gen_attention.py::test_trtllm_batch_prefill, ::test_trtllm_batch_decode mismatch error
+  - 合入时间: 2025-09-24T07:28:48Z
+  - 解决问题: Fix failing tests intests/test_trtllm_gen_attention.py::test_trtllm_batch_prefill and tests/test_trtllm_gen_attention.py::test_trtllm_batch…
+- [#1757](https://github.com/flashinfer-ai/flashinfer/pull/1757) fix: should pass global_override_indptr_cpu in fast_decode_plan param list
+  - 合入时间: 2025-09-24T06:00:05Z
+  - 解决问题: fix #1745
+- [#1760](https://github.com/flashinfer-ai/flashinfer/pull/1760) test: minor update on trtllm-gen attn speculative-decoding test
+  - 合入时间: 2025-09-24T03:05:58Z
+  - 解决问题: test: minor update on trtllm-gen attn speculative-decoding test
+- [#1752](https://github.com/flashinfer-ai/flashinfer/pull/1752) tests: xfail attention sink UT for sliding window + non causal case
+  - 合入时间: 2025-09-23T01:50:33Z
+  - 解决问题: The unittests for attention sink fails after #1661 under sliding window + non causal setting (not usual but we should fix in the future), t…
+- [#1746](https://github.com/flashinfer-ai/flashinfer/pull/1746) ci: complete the list of modules in aot.py
+  - 合入时间: 2025-09-22T23:50:43Z
+  - 解决问题: There are still some modules not captured by aot.py, this PR completes them.
+- [#1750](https://github.com/flashinfer-ai/flashinfer/pull/1750) hotfix: slightly bump up `atol` to `3e-3` to pass `test_cudnn_prefill` on B40
+  - 合入时间: 2025-09-22T08:16:45Z
+  - 解决问题: Slightly increase atol from 2e-3 to 3e-3 to pass the unit test.
+- [#1745](https://github.com/flashinfer-ai/flashinfer/pull/1745) feat: port fast_decode_plan from sgl
+  - 合入时间: 2025-09-22T06:38:14Z
+  - 解决问题: feat: port fast_decode_plan from sgl
+- [#1747](https://github.com/flashinfer-ai/flashinfer/pull/1747) doc: Super tiny fix doc math
+  - 合入时间: 2025-09-21T22:54:49Z
+  - 解决问题: doc: Super tiny fix doc math
+- [#1736](https://github.com/flashinfer-ai/flashinfer/pull/1736) Test refactoring and fixes
+  - 合入时间: 2025-09-20T04:02:09Z
+  - 解决问题: Unit test fixes: Refactored test_mla_decode_kernel to run from pytest Added skip to test_mnnvl_custom_comm when world size is too large Add…
+- [#1731](https://github.com/flashinfer-ai/flashinfer/pull/1731) Fix missing namespace qualifier
+  - 合入时间: 2025-09-19T18:42:46Z
+  - 解决问题: This fixing the build of the trtllm fmhaKernel code, introduced in #1685
+- [#1685](https://github.com/flashinfer-ai/flashinfer/pull/1685) perf: Port the separate reduce kernel mode from trtllm.
+  - 合入时间: 2025-09-19T09:13:55Z
+  - 解决问题: This also updated the kernels which fixed mha perf regression and fp8 sink attention accuracy issue.
+- [#1715](https://github.com/flashinfer-ai/flashinfer/pull/1715) test: skip unsupported (non-SM90) test cases for xqa
+  - 合入时间: 2025-09-18T23:45:50Z
+  - 解决问题: skip unsupported (non-SM90) test cases for xqa.
+- [#1710](https://github.com/flashinfer-ai/flashinfer/pull/1710) test: skip the unsupported test cases for sm120/121
+  - 合入时间: 2025-09-18T19:11:35Z
+  - 解决问题: test: skip the unsupported test cases for sm120/121
+- [#1707](https://github.com/flashinfer-ai/flashinfer/pull/1707) bugfix: increase workspace to make trtllm gen attention unit test pass
+  - 合入时间: 2025-09-17T23:25:20Z
+  - 解决问题: Increase the workspace size from 128 to 256 to make sure tests/test_trtllm_gen_attention.py pass
+- [#1700](https://github.com/flashinfer-ai/flashinfer/pull/1700) ci: fix prefill attention unittests
+  - 合入时间: 2025-09-17T16:36:27Z
+  - 解决问题: xfail the prefill + cudagraph UT, until we fully fix the workspace overflow issues.
+- [#1667](https://github.com/flashinfer-ai/flashinfer/pull/1667) Refactor Blackwell unit test scripts
+  - 合入时间: 2025-09-16T14:28:58Z
+  - 解决问题: Refactor the Blackwell unit test scripts so that they will run to completion regardless of failures and output JUnit xml for rendering pass…
+- [#1681](https://github.com/flashinfer-ai/flashinfer/pull/1681) perf: improve performance of cutlass fmha
+  - 合入时间: 2025-09-16T00:01:07Z
+  - 解决问题: fix the bug in get_unmasked_trip_count calculation in causal attention add skip correction rescale optimization in FA4.
+- [#1680](https://github.com/flashinfer-ai/flashinfer/pull/1680) [TVM] Default `fixed_split_size` value in TVM binding
+  - 合入时间: 2025-09-15T20:12:37Z
+  - 解决问题: This PR uses the default value -1 for fixed_split_size introduced in PR #1675, to keep the interface consistent with the TVM side.
+- [#1679](https://github.com/flashinfer-ai/flashinfer/pull/1679) [misc] add a wrapper class for attention sink jit args
+  - 合入时间: 2025-09-15T07:21:41Z
+  - 解决问题: This PR adds a wrapper class around the JiT implementation of AttentionSink (GPT-OSS style) for FlashInfer backend BatchPrefillWithPagedKVC…
+- [#1675](https://github.com/flashinfer-ai/flashinfer/pull/1675) feat: Batch-size invariant FA2 Prefill & Decode
+  - 合入时间: 2025-09-15T06:40:42Z
+  - 解决问题: As mentioned in https://thinkingmachines.ai/blog/defeating-nondeterminism-in-llm-inference/, split-kv can cause non-determinism.
+- [#1670](https://github.com/flashinfer-ai/flashinfer/pull/1670) feat: Add `variant.OutputTransform()` to decode kernels
+  - 合入时间: 2025-09-14T03:44:49Z
+  - 解决问题: I noticed that only prefill kernels use variant.OutputTransform().
+- [#1662](https://github.com/flashinfer-ai/flashinfer/pull/1662) benchmark: add cupti support to benchmark
+  - 合入时间: 2025-09-11T16:17:20Z
+  - 解决问题: Add CUPTI support for more accurate benchmarking.
+- [#1661](https://github.com/flashinfer-ai/flashinfer/pull/1661) perf&bugfix: skip kv-tile computation out of sliding window in FA2; fix __syncthreads in mergestate
+  - 合入时间: 2025-09-11T03:21:30Z
+  - 解决问题: This PR skips redundant kv-tiles loading&computation in FA2's sliding window implementation, which is used by GPT-OSS inference scenarios.
+- [#1664](https://github.com/flashinfer-ai/flashinfer/pull/1664) feat: Support s_qo < s_kv for prefill in flashinfer_benchmark.py and benchmark minor updates
+  - 合入时间: 2025-09-10T04:34:15Z
+  - 解决问题: flashinfer_benchmark.py's attention prefill currently assumes s_qo = s_kv, which blocks measuring incremental prefill or IFB performance wh…
+- [#1656](https://github.com/flashinfer-ai/flashinfer/pull/1656) Add benchmark for MLARopeQuantize
+  - 合入时间: 2025-09-09T11:41:23Z
+  - 解决问题: Add benchmark for MLARopeQuantize
+- [#1660](https://github.com/flashinfer-ai/flashinfer/pull/1660) Speedup MLARopeQuantize by 20-35%
+  - 合入时间: 2025-09-09T11:38:04Z
+  - 解决问题: baseline num_tokens FlashInfer 0 1.0 0.002714 1 2.0 0.003126 2 4.0 0.003328 3 8.0 0.003328
+- [#1653](https://github.com/flashinfer-ai/flashinfer/pull/1653) misc: add script to analyzer code owners from git history
+  - 合入时间: 2025-09-09T04:45:43Z
+  - 解决问题: Help automate the process of setting up CODEOWNER
+- [#1322](https://github.com/flashinfer-ai/flashinfer/pull/1322) feat: Add k_scale and v_scale to persistent attention 
+  - 合入时间: 2025-09-08T18:25:05Z
+  - 解决问题: For consistency with the general call in SGLang cc @yzh119
+- [#1643](https://github.com/flashinfer-ai/flashinfer/pull/1643) fix: zero-init workspace buffer for trtllm-gen fmha
+  - 合入时间: 2025-09-06T18:01:08Z
+  - 解决问题: trtllm-gen fmha should take exclusive zero-init workspace buffer to ensure zero counter cross kernel executions.
+- [#1640](https://github.com/flashinfer-ai/flashinfer/pull/1640) bugfix: Fix FLOPS calculation for bench_trtllm_gen_mla.py
+  - 合入时间: 2025-09-05T09:48:20Z
+  - 解决问题: Fix FLOPS calculation for bench_trtllm_gen_mla.py Details in #1638
+- [#1635](https://github.com/flashinfer-ai/flashinfer/pull/1635) fix: pass workspace for trtllm-gen attention
+  - 合入时间: 2025-09-04T18:46:30Z
+  - 解决问题: fix: pass workspace for trtllm-gen attention
+- [#1622](https://github.com/flashinfer-ai/flashinfer/pull/1622) bugfix: collect all modules to aot
+  - 合入时间: 2025-09-04T06:03:35Z
+  - 解决问题: Fix #1556
+- [#1631](https://github.com/flashinfer-ai/flashinfer/pull/1631) bugfix: trtllm-gen fmha sm101 and sm100 compatibility
+  - 合入时间: 2025-09-03T22:48:21Z
+  - 解决问题: sm100 device fallback on sm101 kernels for trtllm-gen fmha.
+- [#1613](https://github.com/flashinfer-ai/flashinfer/pull/1613) feat: update flashinfer-cli
+  - 合入时间: 2025-09-03T21:43:03Z
+  - 解决问题: add functionality of clear cache/cubin, and show config using click library show progress bar when downloading the cubins Usage: python3 -m…
+- [#1625](https://github.com/flashinfer-ai/flashinfer/pull/1625) bugfix: fix flashinfer_benchmark.py IMA when running a test list
+  - 合入时间: 2025-09-03T16:37:19Z
+  - 解决问题: The current flashinfer_benchmark.py script can trigger an IMA when a testlist is provided to batch-benchmark multiple test cases.
+- [#1628](https://github.com/flashinfer-ai/flashinfer/pull/1628) patch mm segfault & patch cubin avail.
+  - 合入时间: 2025-09-03T05:39:07Z
+  - 解决问题: patch mm segfault & patch cubin avail.
+- [#1614](https://github.com/flashinfer-ai/flashinfer/pull/1614) bugfix: fix merge_attention_state in BatchAttention w/ gqa-group-size in Qwen family
+  - 合入时间: 2025-09-02T23:42:33Z
+  - 解决问题: This PR fixes precision issues of BatchAttention (Persistent FA2 of #1137), when CTA_TILE_Q is not a multiple of gqa_group_size (e.g., Qwen…
+- [#1608](https://github.com/flashinfer-ai/flashinfer/pull/1608) feat: initial support for SM103, SM110, SM120, SM121
+  - 合入时间: 2025-09-02T20:12:01Z
+  - 解决问题: feat: initial support for SM103, SM110, SM120, SM121
+
+## 2025-08（49）
+
+- [#1453](https://github.com/flashinfer-ai/flashinfer/pull/1453) feat: enable trtllm-gen attn speculative decoding verify by decode
+  - 合入时间: 2025-08-31T07:53:06Z
+  - 解决问题: decode with q_len > 1
+- [#1503](https://github.com/flashinfer-ai/flashinfer/pull/1503) feat: integrate xqa attention backend
+  - 合入时间: 2025-08-29T05:42:14Z
+  - 解决问题: feat: integrate xqa attention backend
+- [#1588](https://github.com/flashinfer-ai/flashinfer/pull/1588) refactor: use allocator class for workspace buffer allocation
+  - 合入时间: 2025-08-27T10:52:17Z
+  - 解决问题: refactor: use allocator class for workspace buffer allocation
+- [#1590](https://github.com/flashinfer-ai/flashinfer/pull/1590) fix: Improve TRTLLM attention kernel out_dtype unit test
+  - 合入时间: 2025-08-27T09:10:51Z
+  - 解决问题: Added follow-up unit tests for #1578: passed or not passed out_dtype to the attn api.
+- [#1584](https://github.com/flashinfer-ai/flashinfer/pull/1584) fix: semaphoress must be at the fixed range in workspace buffer on trtllm_gen attention
+  - 合入时间: 2025-08-26T21:36:41Z
+  - 解决问题: workspace_buffer arrangement on main branch paged_attention: counter (fixed 8MB at head) | scratch ragged_attention: softmax | counter (8MB…
+- [#1578](https://github.com/flashinfer-ai/flashinfer/pull/1578) feat: Support for inferring out_dtype from out.dtype for TRTLLM attention kernel
+  - 合入时间: 2025-08-26T16:09:02Z
+  - 解决问题: Instead of directly use query.dtype as out_dtype, we could infer the out_dtype from out.dtype if out is passed into the API.
+- [#1574](https://github.com/flashinfer-ai/flashinfer/pull/1574) misc: remove some unused files
+  - 合入时间: 2025-08-26T15:36:30Z
+  - 解决问题: csrc/flashinfer_ops.cu and csrc/flashinfer_ops_sm90.cu are no longer used after aot refactoring.
+- [#1540](https://github.com/flashinfer-ai/flashinfer/pull/1540) feat: Add fp8-qkv, fp16/bf16 output MHA
+  - 合入时间: 2025-08-25T05:37:37Z
+  - 解决问题: feat: Add fp8-qkv, fp16/bf16 output MHA
+- [#1567](https://github.com/flashinfer-ai/flashinfer/pull/1567) Backend: downgrade trtllm-gen kernel to cuda-12
+  - 合入时间: 2025-08-25T04:42:25Z
+  - 解决问题: Downgrade trtllm-gen kernel to cuda-12, and revert #1543 (reapply #1518).
+- [#1559](https://github.com/flashinfer-ai/flashinfer/pull/1559) bugfix: fix persistent attention kernel correctness on blackwell
+  - 合入时间: 2025-08-24T20:22:32Z
+  - 解决问题: An explicit __syncthreads is required for guarantee correctness on blackwell, otherwise unittests will fail.
+- [#1562](https://github.com/flashinfer-ai/flashinfer/pull/1562) Bugfix: some typos in Persistent kernel 
+  - 合入时间: 2025-08-24T09:51:35Z
+  - 解决问题: tests pass
+- [#1533](https://github.com/flashinfer-ai/flashinfer/pull/1533) bugfix: Fix Persistent kernel precision for masked output 
+  - 合入时间: 2025-08-24T05:14:15Z
+  - 解决问题: Previously, the packed_causal_kv_end here returns negative remaining_len, so zero_kv_len is false and these output locations are completely…
+- [#1557](https://github.com/flashinfer-ai/flashinfer/pull/1557) fix: add packaging dependency to resolve pypi workflow
+  - 合入时间: 2025-08-23T10:51:40Z
+  - 解决问题: A new package packaging was introduced by #1526, which broke the pypi wrokflow.
+- [#1537](https://github.com/flashinfer-ai/flashinfer/pull/1537) feat: Integrate TRTLLM varlen kernel for deepseek R1 prefill 
+  - 合入时间: 2025-08-22T23:58:26Z
+  - 解决问题: Integrate TRTLLM prefill kernel for deepseek R1.
+- [#1543](https://github.com/flashinfer-ai/flashinfer/pull/1543) Revert "backend: Refactor trtllm-gen fmha metainfo loading (#1518)"
+  - 合入时间: 2025-08-22T07:56:54Z
+  - 解决问题: This reverts commit 7812a77.
+- [#1518](https://github.com/flashinfer-ai/flashinfer/pull/1518) backend: Refactor trtllm-gen fmha metainfo loading
+  - 合入时间: 2025-08-22T01:05:38Z
+  - 解决问题: Update trtlln-gen fmha metainfo loading.
+- [#1427](https://github.com/flashinfer-ai/flashinfer/pull/1427) refactor: Sink attention AoT
+  - 合入时间: 2025-08-21T16:04:53Z
+  - 解决问题: refactor: Sink attention AoT
+- [#1512](https://github.com/flashinfer-ai/flashinfer/pull/1512) flashinfer_benchmark QoL Improvements and Attention FP8 Support
+  - 合入时间: 2025-08-21T00:13:54Z
+  - 解决问题: Current PR: Adds case_tag and generate_repro_command flags to flashinfer_benchmark.py for annotating outputs and generating reproducer comm…
+- [#1497](https://github.com/flashinfer-ai/flashinfer/pull/1497) benchmark: add moe to benchmark
+  - 合入时间: 2025-08-18T20:46:08Z
+  - 解决问题: benchmark: add moe to benchmark
+- [#1496](https://github.com/flashinfer-ai/flashinfer/pull/1496) Revert "feat: Support fp8 qkv, fp16/bf16 out MHA for trtllm-gen. (#1490)
+  - 合入时间: 2025-08-15T07:45:32Z
+  - 解决问题: This reverts commit 96d142d.
+- [#1492](https://github.com/flashinfer-ai/flashinfer/pull/1492) Add errors when dtype is anything other than int32 for ptr metatdata
+  - 合入时间: 2025-08-15T06:43:04Z
+  - 解决问题: This PR adds a very simple error check for the metadata arguments qo_indptr, kv_indptr and kv_lens array.
+- [#1490](https://github.com/flashinfer-ai/flashinfer/pull/1490) feat: Support fp8 qkv, fp16/bf16 out MHA for trtllm-gen.
+  - 合入时间: 2025-08-15T06:31:54Z
+  - 解决问题: feat: Support fp8 qkv, fp16/bf16 out MHA for trtllm-gen.
+- [#1460](https://github.com/flashinfer-ai/flashinfer/pull/1460) Fix TRTLLM NVFP4-out attention kernel scale factor dim issue
+  - 合入时间: 2025-08-14T06:34:12Z
+  - 解决问题: Fixed the shape checking for FP4 scale factor tensor.
+- [#1484](https://github.com/flashinfer-ai/flashinfer/pull/1484) feat: add pdl for trtllm-gen attn
+  - 合入时间: 2025-08-14T03:52:29Z
+  - 解决问题: Following #1446.
+- [#1328](https://github.com/flashinfer-ai/flashinfer/pull/1328) refactor: Improved metainfo for trtllm-gen kernels
+  - 合入时间: 2025-08-13T08:26:19Z
+  - 解决问题: Move trtllm-gen batched-gemm and gemm metainfo headers into cache directory and link when jit.
+- [#1375](https://github.com/flashinfer-ai/flashinfer/pull/1375) Unify and modularize decode and prefill test.
+  - 合入时间: 2025-08-13T07:26:52Z
+  - 解决问题: Unify decode and prefill attention test for trtllm-gen by extract common function.
+- [#1446](https://github.com/flashinfer-ai/flashinfer/pull/1446) Remove getEnvEnablePDL in favor of enable_pdl parameter
+  - 合入时间: 2025-08-13T07:24:51Z
+  - 解决问题: Remove getEnvEnablePDL in favor of enable_pdl parameter
+- [#1463](https://github.com/flashinfer-ai/flashinfer/pull/1463) fix: remove redundant zero_init reverted by #1459
+  - 合入时间: 2025-08-13T07:10:37Z
+  - 解决问题: The duplicate zero_init should be fixed.
+- [#1476](https://github.com/flashinfer-ai/flashinfer/pull/1476) fix: minor fix after #1384
+  - 合入时间: 2025-08-13T06:38:12Z
+  - 解决问题: fix: minor fix after #1384
+- [#1471](https://github.com/flashinfer-ai/flashinfer/pull/1471) Fix "more than one operator "/" matches these operands"
+  - 合入时间: 2025-08-12T08:38:07Z
+  - 解决问题: Seeing the following error on GB200 on flashinfer/include/flashinfer/attention/mla_hopper.cuh Line 829 in fe442a2 (CAUSAL ?
+- [#1384](https://github.com/flashinfer-ai/flashinfer/pull/1384) Allow BatchPrefillPagedWrapper to call cudnn API
+  - 合入时间: 2025-08-11T23:46:20Z
+  - 解决问题: Allow BatchPrefillPagedWrapper to call cudnn API
+- [#1459](https://github.com/flashinfer-ai/flashinfer/pull/1459) Revert "fix: remote redundant zero_init from trtllm-gen attn (#1444)"
+  - 合入时间: 2025-08-11T09:28:25Z
+  - 解决问题: This reverts commit 5451029.
+- [#1416](https://github.com/flashinfer-ai/flashinfer/pull/1416) Fix missing v_scale for prefill wrapper.
+  - 合入时间: 2025-08-10T10:59:43Z
+  - 解决问题: We do need k,v scale !=1 for llama3 fp4 model.
+- [#1434](https://github.com/flashinfer-ai/flashinfer/pull/1434) Fixes for Blackwell Tests
+  - 合入时间: 2025-08-10T10:28:38Z
+  - 解决问题: Fixes for Blackwell Tests
+- [#1415](https://github.com/flashinfer-ai/flashinfer/pull/1415) benchmark: trtllm-gen mha with sink, add benchmark args
+  - 合入时间: 2025-08-10T08:30:44Z
+  - 解决问题: [b200] Benchmark results python3 benchmarks/bench_trtllm_fmha.py batch_size=4, seq_len=1024, num_qo_heads=64, num_kv_heads=8, head_dim=64,…
+- [#1444](https://github.com/flashinfer-ai/flashinfer/pull/1444) fix: remote redundant zero_init from trtllm-gen attn
+  - 合入时间: 2025-08-10T08:30:17Z
+  - 解决问题: fix: remote redundant zero_init from trtllm-gen attn
+- [#1339](https://github.com/flashinfer-ai/flashinfer/pull/1339) feat: Fused rope fp8 quantize kernel for MLA
+  - 合入时间: 2025-08-09T03:15:18Z
+  - 解决问题: Fusing RoPE + fp8 quantization kernel to prepare input for fp8 mla kernel.
+- [#1438](https://github.com/flashinfer-ai/flashinfer/pull/1438) Putting back cudnn_batch_prefill_with_kv_cache that was deleted by ruff
+  - 合入时间: 2025-08-09T00:41:52Z
+  - 解决问题: Putting back cudnn_batch_prefill_with_kv_cache that was deleted by ruff
+- [#1432](https://github.com/flashinfer-ai/flashinfer/pull/1432) Add NOTICE with copyrights
+  - 合入时间: 2025-08-08T21:57:55Z
+  - 解决问题: Adds NOTICE file to specify copyrights for both NVIDIA and Flashinfer community.
+- [#1413](https://github.com/flashinfer-ai/flashinfer/pull/1413) Fix crash when pos_encoding_mode is passed as int
+  - 合入时间: 2025-08-08T18:23:29Z
+  - 解决问题: This PR is to fix this issue caused by 85d75ca File "/scratch/repo/flashinfer/flashinfer/prefill.py", line 83, in get_fmha_module pos_encod…
+- [#1390](https://github.com/flashinfer-ai/flashinfer/pull/1390) Adding FP8 benchmark on attention and matmul testing
+  - 合入时间: 2025-08-07T00:29:19Z
+  - 解决问题: Current PR extends benchmarking script in flashinfer_benchmark.py by adding: MLA backend testing Attention FP8 Benchmarking Introduction fo…
+- [#1393](https://github.com/flashinfer-ai/flashinfer/pull/1393) Add flags to trim down AoT builds
+  - 合入时间: 2025-08-06T02:06:25Z
+  - 解决问题: This PR trims down AoT builds to allow wheels to be generated including only the attention kernels.
+- [#1389](https://github.com/flashinfer-ai/flashinfer/pull/1389) GPT-OSS Support: Add Blackwell MoE mxfp4 implementation from TRTLLM and Attention Sink
+  - 合入时间: 2025-08-05T17:32:33Z
+  - 解决问题: These kernels support OpenAI GPT-OSS Co-authored-by: siyuanf siyuanf@nvidia.com Co-authored-by: Zihao Ye zihaoy@nvidia.com Co-authored-by:…
+- [#1374](https://github.com/flashinfer-ai/flashinfer/pull/1374) Update documentation index
+  - 合入时间: 2025-08-04T09:30:38Z
+  - 解决问题: Update doc index
+- [#1372](https://github.com/flashinfer-ai/flashinfer/pull/1372) ci: add blackwell unittest scripts
+  - 合入时间: 2025-08-04T02:42:38Z
+  - 解决问题: Initial setup of blackwell unittest scripts scripts/run_test_blackwell_attention_kernels.sh for moe/gemm/attention/utils/etc scripts/task_t…
+- [#1369](https://github.com/flashinfer-ai/flashinfer/pull/1369) Artifact downloading and single sourced artifact path
+  - 合入时间: 2025-08-03T13:34:49Z
+  - 解决问题: This PR adds the features of downloading complete artifacts and makes artifacts path single sourced in python.
+- [#1363](https://github.com/flashinfer-ai/flashinfer/pull/1363) Support scale factor start index for fp4 mha prefill/decode
+  - 合入时间: 2025-08-03T00:59:49Z
+  - 解决问题: the start index of fp4 output scale factor o_sf_start_index is useful when the decode kernels are reusing the scale factor tensor of prefil…
+- [#1317](https://github.com/flashinfer-ai/flashinfer/pull/1317) Allow cudnn prefill kernels to be called natively
+  - 合入时间: 2025-08-01T21:28:46Z
+  - 解决问题: Allow cudnn prefill kernels to be called natively
+- [#1360](https://github.com/flashinfer-ai/flashinfer/pull/1360) support trtllm-gen prefill fp4 output
+  - 合入时间: 2025-08-01T17:41:00Z
+  - 解决问题: Support nvfp4 for prefill function call.
+
+## 2025-07（37）
+
+- [#1283](https://github.com/flashinfer-ai/flashinfer/pull/1283) Add native cudnn_decode for improved cudnn decode performance
+  - 合入时间: 2025-07-31T23:23:44Z
+  - 解决问题: This PR tries to integrate cudnn decode by calling the cudnn kernels directly instead of through the cubin path.
+- [#1316](https://github.com/flashinfer-ai/flashinfer/pull/1316) minor: add trtllm_gen_mla benchmark
+  - 合入时间: 2025-07-30T10:49:45Z
+  - 解决问题: Add a missing benchmark.
+- [#1324](https://github.com/flashinfer-ai/flashinfer/pull/1324) feat: Support logits_soft_cap for Persistent attn; fix kv split limit
+  - 合入时间: 2025-07-30T09:44:22Z
+  - 解决问题: When integrating this kernel into SGLang, I quickly hit an assertion error with input len 4000, output len 200 and 8 request/s due to the h…
+- [#1346](https://github.com/flashinfer-ai/flashinfer/pull/1346) Add trtllm-gen prefill test. Fix related wrapper issue.
+  - 合入时间: 2025-07-30T09:33:33Z
+  - 解决问题: Make the old prefill test cover the direct function call and fp8.
+- [#1350](https://github.com/flashinfer-ai/flashinfer/pull/1350) Support passing kv_data_type to MultiLevelCascadeAttentionWrapper.plan()
+  - 合入时间: 2025-07-30T06:36:31Z
+  - 解决问题: MultiLevelCascadeAttentionWrapper.plan() ends up calling plan() on BatchPrefillWithPagedKVCacheWrapper.
+- [#1348](https://github.com/flashinfer-ai/flashinfer/pull/1348) fix: fix trtllm-gen mla error on new interface
+  - 合入时间: 2025-07-29T18:27:20Z
+  - 解决问题: Fix error introduced by #1318
+- [#1318](https://github.com/flashinfer-ai/flashinfer/pull/1318) feat: support output nvfp4 in trtllm-gen function call.
+  - 合入时间: 2025-07-29T00:51:14Z
+  - 解决问题: Only added fp4 support to trtllm_batch_decode_with_kv_cache, not added to wrapper yet.
+- [#1267](https://github.com/flashinfer-ai/flashinfer/pull/1267) Bug fix: fix duplicate launch in POD
+  - 合入时间: 2025-07-27T04:40:04Z
+  - 解决问题: Mistakenly added a duplicate kernel launch last time (actually by cursor, but should've checked more closely😂) cc @yzh119
+- [#1326](https://github.com/flashinfer-ai/flashinfer/pull/1326) Fix redundant argument in TrtllmGenDecodeModule
+  - 合入时间: 2025-07-25T11:18:25Z
+  - 解决问题: Remove the redundant sm_count argument in the TrtllmGenDecodeModule which takes window_left position.
+- [#1323](https://github.com/flashinfer-ai/flashinfer/pull/1323) Addition of flashinfer_benchmark.py for benchmarking routines
+  - 合入时间: 2025-07-25T00:02:03Z
+  - 解决问题: Adds benchmarks/flashinfer_benchmark.py and utility functions for benchmarking performance of various FI APIs.
+- [#1290](https://github.com/flashinfer-ai/flashinfer/pull/1290) [fix] fix integer overflow in FA2 customized_mask & add buffer overflow warning.
+  - 合入时间: 2025-07-24T18:03:08Z
+  - 解决问题: Per discussion with @haochengxi and @Radioheading, this PR moves the plan function in VariableBlockSparseAttentionWrapper to the GPU side,…
+- [#1314](https://github.com/flashinfer-ai/flashinfer/pull/1314) test qkvo quantization not equal to 1.
+  - 合入时间: 2025-07-24T10:55:35Z
+  - 解决问题: test qkvo quantization not equal to 1.
+- [#1307](https://github.com/flashinfer-ai/flashinfer/pull/1307) Fix the bug of the kernel-selection heuristic in trtllm-gen
+  - 合入时间: 2025-07-23T08:33:23Z
+  - 解决问题: this fixes the bug of still selecting low-latency (swapsMmaAb) MLA kernels when batch size is quite large under the high-throughput case (a…
+- [#1305](https://github.com/flashinfer-ai/flashinfer/pull/1305) [Feature] SM level profiler 
+  - 合入时间: 2025-07-23T02:39:14Z
+  - 解决问题: Simply add smid into the profiler tag.
+- [#1302](https://github.com/flashinfer-ai/flashinfer/pull/1302) minor: some fix and cleanup for trtllm-gen mha
+  - 合入时间: 2025-07-23T00:43:55Z
+  - 解决问题: minor: some fix and cleanup for trtllm-gen mha
+- [#1289](https://github.com/flashinfer-ai/flashinfer/pull/1289) refactor: refactor trtllm-gen attention kernel integration code
+  - 合入时间: 2025-07-22T17:25:24Z
+  - 解决问题: Simplify and unify the interface for trtllm-gen decode/prefill/mla kernels, and add support for shared-kv (in MLA, #1273).
+- [#1295](https://github.com/flashinfer-ai/flashinfer/pull/1295) fix: minor errors in cubin loader
+  - 合入时间: 2025-07-21T23:11:31Z
+  - 解决问题: fix: minor errors in cubin loader
+- [#1292](https://github.com/flashinfer-ai/flashinfer/pull/1292) refactor: Improved metainfo for trtllm-gen fmha
+  - 合入时间: 2025-07-21T19:19:38Z
+  - 解决问题: Refactor the metainfo for trtllm gen fmha.
+- [#1286](https://github.com/flashinfer-ai/flashinfer/pull/1286) fix multiCtasKvScratchPtr misalignment issue (new one)
+  - 合入时间: 2025-07-18T17:01:14Z
+  - 解决问题: fix multiCtasKvScratchPtr misalignment issue num_semaphores is rounded up to multiple of 8 to since the kernels require 16B alignment for m…
+- [#1280](https://github.com/flashinfer-ai/flashinfer/pull/1280) fix: update trtllm-gen fmha benchmark
+  - 合入时间: 2025-07-18T09:00:13Z
+  - 解决问题: fix: update trtllm-gen fmha benchmark
+- [#1239](https://github.com/flashinfer-ai/flashinfer/pull/1239) add trtllm-gen context attention
+  - 合入时间: 2025-07-17T10:31:55Z
+  - 解决问题: Integrate trtllm-gen context attention.
+- [#1242](https://github.com/flashinfer-ai/flashinfer/pull/1242) Add trtllm-gen attention mha kernel with FP8 Q/K/V and FP8 output
+  - 合入时间: 2025-07-16T17:50:19Z
+  - 解决问题: Support TRT-LLM gen FP8 Q kernel with FP4/FP8 output
+- [#1258](https://github.com/flashinfer-ai/flashinfer/pull/1258) feat: enable trtllm-gen mla MTP
+  - 合入时间: 2025-07-16T10:58:21Z
+  - 解决问题: Enable deepseek MTP with q>1.
+- [#1214](https://github.com/flashinfer-ai/flashinfer/pull/1214) Feature/sm100 low latency nvfp4 kernels
+  - 合入时间: 2025-07-16T10:11:07Z
+  - 解决问题: Enable Blackwell with speed of light low latency kernels.
+- [#1254](https://github.com/flashinfer-ai/flashinfer/pull/1254) fix: correctly pass k_scale and v_scale to run() in forward_return_lse (#1023)
+  - 合入时间: 2025-07-15T13:24:42Z
+  - 解决问题: Summary This PR fixes a bug in BatchPrefillWithPagedKVCacheWrapper.forward_return_lse() where k_scale and v_scale were incorrectly passed a…
+- [#1251](https://github.com/flashinfer-ai/flashinfer/pull/1251) Reduce the JIT compilation time of gen_gemm_sm100_module
+  - 合入时间: 2025-07-15T07:18:56Z
+  - 解决问题: Reduce the JIT compilation time of gen_gemm_sm100_module
+- [#1222](https://github.com/flashinfer-ai/flashinfer/pull/1222) feat: add trtllm-gen mla cubin
+  - 合入时间: 2025-07-14T06:54:41Z
+  - 解决问题: Add trtllm-gen mla cubin.
+- [#1234](https://github.com/flashinfer-ai/flashinfer/pull/1234) bugfix: support uint8_t for vec_t class template
+  - 合入时间: 2025-07-08T17:13:24Z
+  - 解决问题: This PR tries to fix an issue that occured while enabling fp8 kv-cache support for vllm (vllm-project/vllm#17005).
+- [#1221](https://github.com/flashinfer-ai/flashinfer/pull/1221) Enable cudnn decode and add tests for the cudnn decode kernel
+  - 合入时间: 2025-07-08T07:27:42Z
+  - 解决问题: Enable cudnn decode kernel API
+- [#1230](https://github.com/flashinfer-ai/flashinfer/pull/1230) feat: Add non-causal cudnn prefill kernels
+  - 合入时间: 2025-07-08T06:53:45Z
+  - 解决问题: Allow non-causal kernels of cudnn in cubin.
+- [#1227](https://github.com/flashinfer-ai/flashinfer/pull/1227) Fix missing hash in the cudnn cubin path
+  - 合入时间: 2025-07-07T23:56:35Z
+  - 解决问题: Update the missing hash that is required
+- [#1189](https://github.com/flashinfer-ai/flashinfer/pull/1189) update trtllm-gen decode attention kernel launcher
+  - 合入时间: 2025-07-07T16:54:24Z
+  - 解决问题: This PR updates the trtllm gen kernels for most decoding cases, like head group size from 1 to 8.
+- [#1198](https://github.com/flashinfer-ai/flashinfer/pull/1198) bugfix: fix blackwell fmha hanging issue for empty kv_len
+  - 合入时间: 2025-07-06T22:45:24Z
+  - 解决问题: Cherry picked from cutlass v4.0 changes.
+- [#1217](https://github.com/flashinfer-ai/flashinfer/pull/1217) [TVM] Remove `enable_pdl` from TVM binding interface
+  - 合入时间: 2025-07-05T19:59:03Z
+  - 解决问题: As of now PDL is not introduced in the TVM attention kernel interface, so we remove it from here and use false by default.
+- [#1208](https://github.com/flashinfer-ai/flashinfer/pull/1208) Fix the issue with auxillary kernel launch and grid dim calculation
+  - 合入时间: 2025-07-03T05:59:56Z
+  - 解决问题: Fixes an issue where the auxillary kernel launch was incorrect causing kernel hangs in some cases.
+- [#1206](https://github.com/flashinfer-ai/flashinfer/pull/1206) [fix] fix BatchAttention CTA_TILE_KV mask issue
+  - 合入时间: 2025-07-01T23:38:46Z
+  - 解决问题: The mismatch between kv_chunk_size and CTA_TILE_KV could lead to unmask nan value during small batch inference.
+- [#1187](https://github.com/flashinfer-ai/flashinfer/pull/1187) Feature/cudnn dynamic cubin
+  - 合入时间: 2025-07-01T02:38:52Z
+  - 解决问题: Enable cudnn cubin for deepseek prefill models.
+
+## 2025-06（17）
+
+- [#1200](https://github.com/flashinfer-ai/flashinfer/pull/1200) [feat] optimize persistent batch attention perf.
+  - 合入时间: 2025-06-30T22:10:26Z
+  - 解决问题: This is a follow-up PR on #1137, optimizing scheduling balance & reduction overhead, and achieving 2x speedup.
+- [#1181](https://github.com/flashinfer-ai/flashinfer/pull/1181) bugfix: fix invalid blackwell fmha unittests
+  - 合入时间: 2025-06-27T18:18:16Z
+  - 解决问题: Some of the unittests for fmha varlen (non-contiguous + head dim (192,128)) are not invalid.
+- [#1177](https://github.com/flashinfer-ai/flashinfer/pull/1177) [feat] support block sparse attention w/ variable block sizes and head-wise sparse patterns
+  - 合入时间: 2025-06-27T00:37:57Z
+  - 解决问题: This PR implements a block sparse attention wrapper that calls the underlying FA2 and FA3 kernel implementation, which supports: Variable b…
+- [#1170](https://github.com/flashinfer-ai/flashinfer/pull/1170) feat: logits processor fustion rule for temperature softmax
+  - 合入时间: 2025-06-25T02:15:46Z
+  - 解决问题: Add fustion rule to apply recently implemented fused temperature + softmax kernel in #1153.
+- [#1153](https://github.com/flashinfer-ai/flashinfer/pull/1153) feat: Fused temperature online softmax kernel
+  - 合入时间: 2025-06-24T04:43:27Z
+  - 解决问题: This adds the fused temperature online softmax kernel to the sampling and logits processor API.
+- [#1159](https://github.com/flashinfer-ai/flashinfer/pull/1159) feat: add finalize_moe_allreduce from trtllm
+  - 合入时间: 2025-06-22T03:23:50Z
+  - 解决问题: add finalize_moe_allreduce from trtllm
+- [#1158](https://github.com/flashinfer-ai/flashinfer/pull/1158) Add more logging to TRTLLM-GEN debug trace (NFC)
+  - 合入时间: 2025-06-19T20:20:49Z
+  - 解决问题: This is meant to help debugging the lookup/launch sequence for these kernels.
+- [#1148](https://github.com/flashinfer-ai/flashinfer/pull/1148) [fix] fix precision errors when applying causal mask on Qwen-2.5 series models
+  - 合入时间: 2025-06-16T15:29:40Z
+  - 解决问题: This PR identifies and fixes a precision error that occurs (rarely but possibly) on models with non-power-of-two gqa_group_size when applyi…
+- [#1146](https://github.com/flashinfer-ai/flashinfer/pull/1146) misc: remove sync between persistent runners and use packed_causal_kv_end for SM90Plan
+  - 合入时间: 2025-06-16T06:43:37Z
+  - 解决问题: misc: remove sync between persistent runners and use packed_causal_kv_end for SM90Plan
+- [#1140](https://github.com/flashinfer-ai/flashinfer/pull/1140) Fix FA2 and FA3 multi-item scoring and cuda illegal memory access error
+  - 合入时间: 2025-06-13T03:51:00Z
+  - 解决问题: This PR fixes FA2 and FA3 multi-item scoring and resolves CUDA illegal memory access errors in the FlashInfer attention kernels.
+- [#1137](https://github.com/flashinfer-ai/flashinfer/pull/1137) [feat] add unified batch attention w/ correctness tests.
+  - 合入时间: 2025-06-12T05:12:12Z
+  - 解决问题: Follow up of #858, #967, and #1026, this PR aims to provide an efficient and unified API for processing prefill and decode requests within…
+- [#1136](https://github.com/flashinfer-ai/flashinfer/pull/1136) fix: negative zero by type trait --> binary value
+  - 合入时间: 2025-06-11T20:12:32Z
+  - 解决问题: We are going to fix the has_neg_zero.
+- [#1117](https://github.com/flashinfer-ai/flashinfer/pull/1117) [Feature] Support PDL for batch Prefill and Decode
+  - 合入时间: 2025-06-10T22:02:10Z
+  - 解决问题: Add PDL support for batched prefill (FA2), decode, merge states and MLA decode, overlapping local variable and state init (e.g.
+- [#1129](https://github.com/flashinfer-ai/flashinfer/pull/1129) Fix pointer dtype bug in rope
+  - 合入时间: 2025-06-08T16:19:28Z
+  - 解决问题: According to sgl-kernel(https://github.com/sgl-project/sglang/blob/c2c4f57f6311ba143c6156ab1d1a1d9413e6e4d0/sgl-kernel/README.md?plain=1#L1…
+- [#1116](https://github.com/flashinfer-ai/flashinfer/pull/1116) hotfix: fix the blackwell fmha stream
+  - 合入时间: 2025-06-06T02:58:03Z
+  - 解决问题: This PR is a followup of #1106 , however, sglang integration of blackwell blackwell fmha still do not reach desired performance (sgl-projec…
+- [#1109](https://github.com/flashinfer-ai/flashinfer/pull/1109) bugfix: bugfix for blackwell mla split-k
+  - 合入时间: 2025-06-03T20:26:05Z
+  - 解决问题: Cherry-picked the patch (authored by @v0i0) to fix #1055
+- [#1106](https://github.com/flashinfer-ai/flashinfer/pull/1106) bugfix: host-precomuted plan function for blackwell fmha
+  - 合入时间: 2025-06-03T00:40:17Z
+  - 解决问题: Accelerate blackwell causal fmha, and fix issue #1103
+
+## 2025-05（12）
+
+- [#1051](https://github.com/flashinfer-ai/flashinfer/pull/1051) [nvidia] Add Blackwell FMHA decode kernel from TRT-LLM
+  - 合入时间: 2025-05-27T01:22:00Z
+  - 解决问题: This patch adds support for downloading cubins on the fly and caching them on disk.
+- [#1093](https://github.com/flashinfer-ai/flashinfer/pull/1093) misc: followup
+  - 合入时间: 2025-05-26T03:21:46Z
+  - 解决问题: Followup of #1092 The last one.
+- [#1087](https://github.com/flashinfer-ai/flashinfer/pull/1087) bugfix: fix fp8 attention kernels aot compilation issue
+  - 合入时间: 2025-05-23T22:18:37Z
+  - 解决问题: batch_indices_offset (introduced in #1015 ) are not passed to fp8 attention kernels, this PR fixes the issue.
+- [#1067](https://github.com/flashinfer-ai/flashinfer/pull/1067) misc: aot: Add script to build all AOT ops
+  - 合入时间: 2025-05-22T01:23:03Z
+  - 解决问题: Part of AOT Refactor (#1064).
+- [#1073](https://github.com/flashinfer-ai/flashinfer/pull/1073) misc: jit: Import jit_env as a module
+  - 合入时间: 2025-05-22T00:48:40Z
+  - 解决问题: Part of AOT Refactor (#1064).
+- [#1072](https://github.com/flashinfer-ai/flashinfer/pull/1072) bugfix: follow user-specified sm_scale for blackwell cutlass fmha
+  - 合入时间: 2025-05-20T15:57:14Z
+  - 解决问题: Use user-specified instead of hardcoded sm_scale for blackwell cutlass fmha kernel.
+- [#1071](https://github.com/flashinfer-ai/flashinfer/pull/1071) bugfix: adding lse output to blackwell fmha kernels
+  - 合入时间: 2025-05-20T06:12:09Z
+  - 解决问题: bugfix: adding lse output to blackwell fmha kernels
+- [#1059](https://github.com/flashinfer-ai/flashinfer/pull/1059) Parameterize prefix mask call (needed by POD-Attention)
+  - 合入时间: 2025-05-14T22:34:15Z
+  - 解决问题: Passes the threadId to the prefix mask call manually.
+- [#1055](https://github.com/flashinfer-ai/flashinfer/pull/1055) bugfix: temporally disable split-kv in blackwell mla
+  - 合入时间: 2025-05-13T07:05:41Z
+  - 解决问题: There are some bugs with blackwell mla when split-kv is enabled, temporally disable it to guarantee the correctness of results.
+- [#1054](https://github.com/flashinfer-ai/flashinfer/pull/1054) Fix KV chunking for POD. 
+  - 合入时间: 2025-05-13T05:18:45Z
+  - 解决问题: For some reason cudaOccupancyMaxActiveBlocksPerMultiprocessor returns 0, so manually calculate the value instead.
+- [#1039](https://github.com/flashinfer-ai/flashinfer/pull/1039) [nvidia] initial support for blackwell kernels
+  - 合入时间: 2025-05-13T02:06:29Z
+  - 解决问题: Mainly adapted from cutlass examples.
+- [#1052](https://github.com/flashinfer-ai/flashinfer/pull/1052) Benchmark: POD vs batched prefill
+  - 合入时间: 2025-05-11T20:27:19Z
+  - 解决问题: Supersedes yzh119#5 python benchmarks/bench_mixed_attention.py
+
+## 2025-04（10）
+
+- [#1015](https://github.com/flashinfer-ai/flashinfer/pull/1015) add multi-item scoring
+  - 合入时间: 2025-04-30T18:49:55Z
+  - 解决问题: Co-authored with Qingquan Song (@qingquansong) and Ziang Li (@zianglih ) Multi-item scoring concatenate multiple candidates of a same membe…
+- [#1033](https://github.com/flashinfer-ai/flashinfer/pull/1033) feat: add functional per-head FP8 quantization for FA3
+  - 合入时间: 2025-04-29T21:25:18Z
+  - 解决问题: This PR adds FP8 support in FA3 to speed up compute-bound prefill kernels.
+- [#1040](https://github.com/flashinfer-ai/flashinfer/pull/1040) Non-blocking host-to-device copy in the ragged prefill wrapper
+  - 合入时间: 2025-04-25T15:58:07Z
+  - 解决问题: Non-blocking host-to-device copy in the ragged prefill wrapper
+- [#1031](https://github.com/flashinfer-ai/flashinfer/pull/1031) [NVIDIA] Add Cutlass MLA backend
+  - 合入时间: 2025-04-23T16:54:31Z
+  - 解决问题: This PR add a cutlass backend to the flashinfer BatchMLAPagedAttentionWrapper.
+- [#1029](https://github.com/flashinfer-ai/flashinfer/pull/1029) fix: add zero init for KV tiled copy
+  - 合入时间: 2025-04-22T04:36:15Z
+  - 解决问题: This PR fixes the out-of-bound K/V value loading in the FA3 sparse_mainloop.cuh, which may cause a nan value for BatchPrefillWithPagedKVCac…
+- [#1028](https://github.com/flashinfer-ai/flashinfer/pull/1028) bugfix: fix custom mask not be reseted after convert custom mask into causal or non-causal
+  - 合入时间: 2025-04-21T16:12:38Z
+  - 解决问题: When using custom mask for Medusa or other method, flashinfer api will inference with custom mask buf, but when there has no draft token, t…
+- [#1007](https://github.com/flashinfer-ai/flashinfer/pull/1007) feat: update decode attention APIs
+  - 合入时间: 2025-04-15T16:30:43Z
+  - 解决问题: This PR updates the decode attention APIs by: Adding lse return value for single_decode_with_kv_cache API per requested in #1006 (note that…
+- [#1013](https://github.com/flashinfer-ai/flashinfer/pull/1013) bugfix: import wrapper of mla decode
+  - 合入时间: 2025-04-15T14:34:33Z
+  - 解决问题: In tests/test_mla_decode_kernel.py, the code below uses BatchDecodeMlaWithPagedKVCacheWrapper: flashinfer/tests/test_mla_decode_kernel.py L…
+- [#1014](https://github.com/flashinfer-ai/flashinfer/pull/1014) misc: fix instrument code for mla profiler
+  - 合入时间: 2025-04-10T23:16:02Z
+  - 解决问题: Follow up of #952 , this PR adds the instrument code base to profile mla hopper implementation (fix #995 ) cc @ziyuhuang123
+- [#982](https://github.com/flashinfer-ai/flashinfer/pull/982) SM-constraint-GEMM by triton persistent kernel
+  - 合入时间: 2025-04-01T19:36:00Z
+  - 解决问题: Add SM-constraint GEMM operation by triton persistent kernel to support Nanoflow infra-device parallelism.
+
+## 2025-03（14）
+
+- [#991](https://github.com/flashinfer-ai/flashinfer/pull/991) perf: prefetch page indices for mla kernel
+  - 合入时间: 2025-03-31T21:27:39Z
+  - 解决问题: Followup of #952 cc @abcdabcd987 Before this PR Config: batch_size=64, seq_len=1024, num_heads=64 Memory bandwidth: 1509.87 GB/s FLOPs: 163…
+- [#952](https://github.com/flashinfer-ai/flashinfer/pull/952) perf: Use 2WG pipeline design for MLA implementation on Hopper
+  - 合入时间: 2025-03-29T04:34:14Z
+  - 解决问题: This PR implements #892 .
+- [#966](https://github.com/flashinfer-ai/flashinfer/pull/966) doc: remove misleading docstring about `non_blocking`
+  - 合入时间: 2025-03-22T08:24:44Z
+  - 解决问题: As noted in #965 , we have some misleading docstring about the use of non_blocking option in plan functions of attention wrappers (they are…
+- [#961](https://github.com/flashinfer-ai/flashinfer/pull/961) Fix compilation on cuda 12.2
+  - 合入时间: 2025-03-19T16:57:53Z
+  - 解决问题: Compiling FlashInfer on CUDA 12.2 triggers errors such as those shown below.
+- [#943](https://github.com/flashinfer-ai/flashinfer/pull/943) ci: improve jenkins
+  - 合入时间: 2025-03-18T16:33:09Z
+  - 解决问题: cancel previous build if new commit comes add task 3 accelerate rope test Co-authored-by: Yong Wu yowu@nvidia.com
+- [#956](https://github.com/flashinfer-ai/flashinfer/pull/956) misc: Temporarily disable POD from AOT wheels
+  - 合入时间: 2025-03-17T21:51:51Z
+  - 解决问题: We currently don't generate the AOT implementations for POD Attention.
+- [#951](https://github.com/flashinfer-ai/flashinfer/pull/951) bugfix: bugfix to #949
+  - 合入时间: 2025-03-17T16:28:40Z
+  - 解决问题: The sm86/sm89 version of mla kernel was not tests after change #942, this PR fixes the issue.
+- [#954](https://github.com/flashinfer-ai/flashinfer/pull/954) fix: fix pod-attention compilation time
+  - 合入时间: 2025-03-17T15:00:09Z
+  - 解决问题: As mentioned in #953 , we shouldn't include <flashinfer/attention/pod.cuh> in pod_tensor.cu (now pod.cu).
+- [#942](https://github.com/flashinfer-ai/flashinfer/pull/942) fix - fix bug when not relevant seq has nan data
+  - 合入时间: 2025-03-15T02:35:14Z
+  - 解决问题: We found that in the batch MLA FA2 implementation, if there exists NaN data within the computed CKV cache page, the kernel implementation w…
+- [#945](https://github.com/flashinfer-ai/flashinfer/pull/945) bugfix: fix potential issues of FA3 template loading nans for PageAttention
+  - 合入时间: 2025-03-14T18:53:36Z
+  - 解决问题: Ref #941
+- [#858](https://github.com/flashinfer-ai/flashinfer/pull/858) Add POD-Attention to FlashInfer
+  - 合入时间: 2025-03-13T20:54:28Z
+  - 解决问题: Adds POD-Attention kernel (https://arxiv.org/abs/2410.18038) with all necessary files.
+- [#888](https://github.com/flashinfer-ai/flashinfer/pull/888) feat - support mla kvcache store
+  - 合入时间: 2025-03-13T18:23:08Z
+  - 解决问题: Summary related to #877 This PR implement MLA cache store，and passed correctness test in the case of ckv_dim=512 and kpe_dim=64，but no furt…
+- [#940](https://github.com/flashinfer-ai/flashinfer/pull/940) fix: Fix MLA TVM binding for the latest changes
+  - 合入时间: 2025-03-13T16:19:23Z
+  - 解决问题: This PR applies changes in #898 and #900 to the MLA TVM binding.
+- [#913](https://github.com/flashinfer-ai/flashinfer/pull/913) feat: flashinfer intra-kernel profiler
+  - 合入时间: 2025-03-06T00:46:43Z
+  - 解决问题: FlashInfer Profiler is a tool for intra-kernel profiling for diagnosing kernel performance, by visualizing the work of each CTA/warpgroup.
+
+## 2025-02（47）
+
+- [#904](https://github.com/flashinfer-ai/flashinfer/pull/904) bugfix: Fix no return type error
+  - 合入时间: 2025-02-28T16:14:00Z
+  - 解决问题: This pull request includes a change to the convert_s_to_p function in the mla_hopper.cuh file to improve type safety and clarity.
+- [#869](https://github.com/flashinfer-ai/flashinfer/pull/869) Naive Support for Hopper FP8 Prefill Kernel with Per-Head Quantization
+  - 合入时间: 2025-02-27T21:29:57Z
+  - 解决问题: Summary This PR introduces naive FP8 tensor core computation following FA3's implementations.
+- [#902](https://github.com/flashinfer-ai/flashinfer/pull/902) release: bump version v0.2.2.post1
+  - 合入时间: 2025-02-27T05:59:18Z
+  - 解决问题: Fix several performance bugs in MLA kernel.
+- [#901](https://github.com/flashinfer-ai/flashinfer/pull/901) perf: tweak the pipeline design of mla kernel
+  - 合入时间: 2025-02-27T05:55:29Z
+  - 解决问题: defer barrier sync for p_smem change unroll number from 1 to 2 We found there are still significant overhead for synchronizing two consumer…
+- [#900](https://github.com/flashinfer-ai/flashinfer/pull/900) perf: use f16 as split-k partial output data type
+  - 合入时间: 2025-02-27T04:00:22Z
+  - 解决问题: We use f32 as split-k partial output data type, mainly for accuracy concern.
+- [#898](https://github.com/flashinfer-ai/flashinfer/pull/898) perf: fix MLA split-k performance bug
+  - 合入时间: 2025-02-26T01:32:04Z
+  - 解决问题: As observed in #892 , we found flashinfer mla's second stage of split-k is very slow (when batch size is small), this is because our schedu…
+- [#896](https://github.com/flashinfer-ai/flashinfer/pull/896) perf: tweak register amount for producer/consumer in MLA template
+  - 合入时间: 2025-02-24T17:41:10Z
+  - 解决问题: 56, 224 is faster.
+- [#895](https://github.com/flashinfer-ai/flashinfer/pull/895) fix: pin_memory use cpu as default device
+  - 合入时间: 2025-02-24T15:57:36Z
+  - 解决问题: Use cpu as default device for pin_memory in mla.py and sparse.py
+- [#891](https://github.com/flashinfer-ai/flashinfer/pull/891) bump version to v0.2.2
+  - 合入时间: 2025-02-23T22:28:08Z
+  - 解决问题: flashinfer now supports fa3 version of MLA kernel.
+- [#890](https://github.com/flashinfer-ai/flashinfer/pull/890) unittest: add unittests for MLA + cudagraph
+  - 合入时间: 2025-02-23T20:35:21Z
+  - 解决问题: This update also addresses an issue in the scheduler that could cause the program to hang under certain conditions.
+- [#889](https://github.com/flashinfer-ai/flashinfer/pull/889) [JIT] Fix MLA header in TVM binding
+  - 合入时间: 2025-02-23T19:08:49Z
+  - 解决问题: This PR fixes the header include, following changes in #887.
+- [#887](https://github.com/flashinfer-ai/flashinfer/pull/887) perf: FlashAttention-3 style MLA PageAttention
+  - 合入时间: 2025-02-23T11:37:57Z
+  - 解决问题: This PR is the followup of #804 , we implemented a FlashAttention-3 version of warp specialization pattern (splitting on head-dimension) in…
+- [#881](https://github.com/flashinfer-ai/flashinfer/pull/881) [Hotfix] Add flashinfer.jit.attention into packages
+  - 合入时间: 2025-02-20T05:51:30Z
+  - 解决问题: flashinfer.jit.attention package is introduced in #880, but it's not added into the packages list when building wheel.
+- [#880](https://github.com/flashinfer-ai/flashinfer/pull/880) JIT compilation support for TVM
+  - 合入时间: 2025-02-19T20:32:44Z
+  - 解决问题: This PR introduces the FlashInfer JIT compilation for TVM, with corresponding TVM bindings.
+- [#878](https://github.com/flashinfer-ai/flashinfer/pull/878) misc:Remove unused k_smem_offset_w update in MLA kernel
+  - 合入时间: 2025-02-19T18:13:50Z
+  - 解决问题: The variable ckv_smem_offset_w and kpe_smem_offset_w are never used after update in current loop, and they will be redefined and recomputed…
+- [#868](https://github.com/flashinfer-ai/flashinfer/pull/868) bugfix: fix the behavior of MLA kernel when kv-length is 0
+  - 合入时间: 2025-02-17T21:56:32Z
+  - 解决问题: The scheduling algorithm in #863 do not consider some requests have kv-cache length 0, this PR fixes the issue.
+- [#861](https://github.com/flashinfer-ai/flashinfer/pull/861) unittest: add MLA test cases where kv_len is evenly divided by page_size.
+  - 合入时间: 2025-02-17T19:39:48Z
+  - 解决问题: @yzh119 PLZ take a look for this test.
+- [#863](https://github.com/flashinfer-ai/flashinfer/pull/863) perf: dynamic split-k for MLA
+  - 合入时间: 2025-02-17T15:30:20Z
+  - 解决问题: #804 didn't implement split-k, which might result in performance degradation if concurrency is not large enough.
+- [#856](https://github.com/flashinfer-ai/flashinfer/pull/856) typo: update `decode_maybe_q_rope_offset`
+  - 合入时间: 2025-02-16T16:31:44Z
+  - 解决问题: Following up on #855 and #847, this PR fixes a typo of inline RoPE in decode kernel.
+- [#855](https://github.com/flashinfer-ai/flashinfer/pull/855) Unique the symbol of maybe_q_rope_offset_v.
+  - 合入时间: 2025-02-16T16:02:16Z
+  - 解决问题: Having building error with multiple definitions of has_maybe_q_rope_offset_v with building command: TORCH_CUDA_ARCH_LIST="9.0a" FLASHINFER_…
+- [#850](https://github.com/flashinfer-ai/flashinfer/pull/850) misc: Remove duplicate param set in MLA kernel
+  - 合入时间: 2025-02-16T07:22:46Z
+  - 解决问题: This PR removes the duplicate set of params.kv_indices in the MLA kernel.
+- [#847](https://github.com/flashinfer-ai/flashinfer/pull/847) bugfix: Fix inline RoPE in decode kernels
+  - 合入时间: 2025-02-16T02:59:47Z
+  - 解决问题: This PR fixes a bug in decode kernel that fails to process the q_rope_offset provided in Params.
+- [#808](https://github.com/flashinfer-ai/flashinfer/pull/808) fix: Pass backend in BatchPrefillWith*KVCacheWrapper.plan()
+  - 合入时间: 2025-02-16T00:37:59Z
+  - 解决问题: Fix #807 For the BatchPrefillWith*KVCacheWrapper that support both FA2 and FA3, user may call the ctor() once and the plan() multiple times.
+- [#844](https://github.com/flashinfer-ai/flashinfer/pull/844) perf: MLA decode kernel implemented by CuTe targeted to SM80
+  - 合入时间: 2025-02-14T17:45:14Z
+  - 解决问题: Hi @yzh119 , this is a follow up of #766, an interesting idea came to my mind today, can't help to change few lines to verify this idea.
+- [#822](https://github.com/flashinfer-ai/flashinfer/pull/822) hotfix: bugfix on #812
+  - 合入时间: 2025-02-13T12:12:37Z
+  - 解决问题: We met some very weird issues, might be a nvcc bug.
+- [#821](https://github.com/flashinfer-ai/flashinfer/pull/821) bugfix: bugfix on sm89 MLA
+  - 合入时间: 2025-02-13T10:15:04Z
+  - 解决问题: Follow up of #814 , we found some correctness issue of sm89 MLA kernels, this PR fixes them.
+- [#764](https://github.com/flashinfer-ai/flashinfer/pull/764) refactor: change to TORCH_LIBRARY
+  - 合入时间: 2025-02-13T08:33:11Z
+  - 解决问题: draft pr
+- [#818](https://github.com/flashinfer-ai/flashinfer/pull/818) doc: improve mla related documentation
+  - 合入时间: 2025-02-13T07:59:54Z
+  - 解决问题: doc: improve mla related documentation
+- [#816](https://github.com/flashinfer-ai/flashinfer/pull/816) bugfix: fix the behavior of mla plan function when provided with host tensors
+  - 合入时间: 2025-02-13T07:16:31Z
+  - 解决问题: cc @abcdabcd987
+- [#814](https://github.com/flashinfer-ai/flashinfer/pull/814) feat: unlock MLA attention for sm89 (L40/L40s/4090)
+  - 合入时间: 2025-02-12T21:17:17Z
+  - 解决问题: This PR changes the MLA attention template to support sm89 GPUs, which has small shared memory size (99kb per sm), so we have to further re…
+- [#813](https://github.com/flashinfer-ai/flashinfer/pull/813) feat: cudagraph-compatible MLA API
+  - 合入时间: 2025-02-12T18:51:36Z
+  - 解决问题: feat: cudagraph-compatible MLA API
+- [#812](https://github.com/flashinfer-ai/flashinfer/pull/812) feat: unlocking MLA for A100
+  - 合入时间: 2025-02-12T18:21:34Z
+  - 解决问题: Generalize the MLA template to support different CTA_TILE_KV and NUM_STAGES for GPUs such as A100.
+- [#811](https://github.com/flashinfer-ai/flashinfer/pull/811) doc: add documentation to new MLA interface
+  - 合入时间: 2025-02-12T07:39:49Z
+  - 解决问题: Add new MLA API to documentation.
+- [#810](https://github.com/flashinfer-ai/flashinfer/pull/810) bugfix: mla page-attention kernel for different page sizes
+  - 合入时间: 2025-02-12T06:55:49Z
+  - 解决问题: The previous PR #804 only tests page_size 1, this PR fixes the issue with other page sizes and add corresponding unittests.
+- [#804](https://github.com/flashinfer-ai/flashinfer/pull/804) perf: memory efficient deepseek mla fused page-attention kernel
+  - 合入时间: 2025-02-12T05:02:18Z
+  - 解决问题: This PR implements a memory efficient fused Deepseek MLA PageAttention kernel for decode, prefill, and chunked prefill operations.
+- [#803](https://github.com/flashinfer-ai/flashinfer/pull/803) bugfix: mla decode failed under cuda graph mode, and update test case
+  - 合入时间: 2025-02-11T18:26:47Z
+  - 解决问题: bugfix: mla decode failed under cuda graph mode, and update test case
+- [#799](https://github.com/flashinfer-ai/flashinfer/pull/799) feat: support f32 attention output in FA2 template
+  - 合入时间: 2025-02-08T20:15:11Z
+  - 解决问题: For bf16 kernels, we need to use f32 as the intermediate data type for split-k partial output to avoid numerical errors.
+- [#798](https://github.com/flashinfer-ai/flashinfer/pull/798) Fix the type annotation of q_dtype and kv_dtype on ragged prefill
+  - 合入时间: 2025-02-08T08:26:49Z
+  - 解决问题: Fix the type annotation of q_dtype and kv_dtype on ragged prefill
+- [#797](https://github.com/flashinfer-ai/flashinfer/pull/797) test: add unittest comparing deepseek prefill fa2 & 3 implementation
+  - 合入时间: 2025-02-07T17:49:18Z
+  - 解决问题: test: add unittest comparing deepseek prefill fa2 & 3 implementation
+- [#795](https://github.com/flashinfer-ai/flashinfer/pull/795) Fix arguments of `plan` for split QK/VO head dims
+  - 合入时间: 2025-02-07T16:48:13Z
+  - 解决问题: #765 introduced changes to the API of plan, including renaming head_dim to head_dim_qk and adding head_dim_vo.
+- [#793](https://github.com/flashinfer-ai/flashinfer/pull/793) fix rope logic in mla decoding
+  - 合入时间: 2025-02-07T07:00:34Z
+  - 解决问题: Co-authored-by: pankajroark pankajroark@users.noreply.github.com As titled, unblock the FlashInfer integration.
+- [#787](https://github.com/flashinfer-ai/flashinfer/pull/787) bugfix: MLA decode should multiply sm_scale by math::log2e
+  - 合入时间: 2025-02-05T16:00:21Z
+  - 解决问题: After this fix, the mse_use_flashinfer in test_mla_decode_kernel.py will improve significantly.
+- [#781](https://github.com/flashinfer-ai/flashinfer/pull/781) bugfix: fix batch prefill attention kernel unittests
+  - 合入时间: 2025-02-04T19:14:15Z
+  - 解决问题: This pull request includes a small change to the tests/test_batch_prefill_kernels.py file.
+- [#778](https://github.com/flashinfer-ai/flashinfer/pull/778) feat: Separate QK/VO head dim dispatch for sm90 AOT
+  - 合入时间: 2025-02-04T06:56:26Z
+  - 解决问题: #765 introduces hacks to support DeepSeek head dims, but AOT is broken.
+- [#776](https://github.com/flashinfer-ai/flashinfer/pull/776) perf: refactor fa2 prefill template
+  - 合入时间: 2025-02-04T05:20:55Z
+  - 解决问题: This PR refactors the FA2-based prefill template, including the following changes: Using KernelTraits for all constexpr and data types.
+- [#772](https://github.com/flashinfer-ai/flashinfer/pull/772) refactor: change the structure of attention updater
+  - 合入时间: 2025-02-01T05:24:23Z
+  - 解决问题: Per discussion with @happierpig , user should be able to construct attention updater in their own way (and parameters).
+- [#765](https://github.com/flashinfer-ai/flashinfer/pull/765) feat: support deepseek prefill attention shape
+  - 合入时间: 2025-02-01T03:44:52Z
+  - 解决问题: Deepseek requires head_dim_qk of 192 and head_dim_vo of 128, this PR implements this feature for prefill attention on ragged tensors.
+
+## 2025-01（9）
+
+- [#768](https://github.com/flashinfer-ai/flashinfer/pull/768) Version bump: v0.2.0.post2
+  - 合入时间: 2025-01-31T19:48:42Z
+  - 解决问题: Release a version before v0.2.1 (which includes a bunch of mla updates).
+- [#767](https://github.com/flashinfer-ai/flashinfer/pull/767) bugfix: Fix block-sparse attention API
+  - 合入时间: 2025-01-31T19:43:06Z
+  - 解决问题: This pull request includes a small change to the flashinfer/sparse.py file.
+- [#754](https://github.com/flashinfer-ai/flashinfer/pull/754) Change `apply_rope_with_cos_sin_cache` to accept `cos_sin_cache`
+  - 合入时间: 2025-01-27T06:09:37Z
+  - 解决问题: For sgl-project/sglang#3134 Problem: In SGLang, we pass cos_sin_cache with the shape (max_len, rot_dim) to RoPE kernel.
+- [#755](https://github.com/flashinfer-ai/flashinfer/pull/755) fix pin memory device
+  - 合入时间: 2025-01-27T03:18:58Z
+  - 解决问题: right now flashinfer does not specify the device when creating pin-memory tensor.
+- [#753](https://github.com/flashinfer-ai/flashinfer/pull/753) [bugfix] Fix cpp tests/benchmarks
+  - 合入时间: 2025-01-26T15:54:31Z
+  - 解决问题: Create MLA instantiations Set use_sliding_window=False in benchmarks.
+- [#752](https://github.com/flashinfer-ai/flashinfer/pull/752) bugfix: various AOT issues
+  - 合入时间: 2025-01-25T04:10:21Z
+  - 解决问题: Add missing instantiation for batch prefill and single prefill.
+- [#751](https://github.com/flashinfer-ai/flashinfer/pull/751) Filter out unsupported head dim for sm90
+  - 合入时间: 2025-01-25T02:18:43Z
+  - 解决问题: Ran into compilation error when setting FLASHINFER_HEAD_DIMS=64,128,192,256.
+- [#748](https://github.com/flashinfer-ai/flashinfer/pull/748) [Refactor] Unify JIT/Customization/AOT mode
+  - 合入时间: 2025-01-23T09:09:13Z
+  - 解决问题: This PR implements the #706 to unify the codebase for (1) JIT compilation of default attention (2) JIT compilation of customized attention…
+- [#714](https://github.com/flashinfer-ai/flashinfer/pull/714) perf: fix the iteration bound of SWA in FA2 prefill template
+  - 合入时间: 2025-01-04T07:31:23Z
+  - 解决问题: We forgot to divide the packed row index by group_size when computing the sliding window iteration bound, making it larger than its actual…
+
+## 2024-12（13）
+
+- [#704](https://github.com/flashinfer-ai/flashinfer/pull/704) Customizable SM90 prefill kernels.
+  - 合入时间: 2024-12-29T17:03:41Z
+  - 解决问题: Added customizable SM90 prefill kernels.
+- [#697](https://github.com/flashinfer-ai/flashinfer/pull/697) bugfix: casting int array to int32 for rope input arguments
+  - 合入时间: 2024-12-25T07:54:54Z
+  - 解决问题: To avoid the potential bugs when user pass LongTensor to rope APIs.
+- [#691](https://github.com/flashinfer-ai/flashinfer/pull/691) release: bump version to v0.2.0.post1
+  - 合入时间: 2024-12-23T00:48:52Z
+  - 解决问题: 0.2.0.post1 (2024-12-22) Bug Fixes bug fix on determine_attention_backend condition (#688) (bcf7a3e) accelerate plan speed of fa3 template…
+- [#690](https://github.com/flashinfer-ai/flashinfer/pull/690) hotfix: accelerate plan speed of fa3 template
+  - 合入时间: 2024-12-23T00:39:35Z
+  - 解决问题: The fa3 template's plan speed is very slow because we overestimate the workspace size that needs to be transferred from CPU to GPU, this PR…
+- [#688](https://github.com/flashinfer-ai/flashinfer/pull/688) bugfix: bug fix on `determine_attention_backend` condition
+  - 合入时间: 2024-12-20T07:29:50Z
+  - 解决问题: Should only enable fa3 for cuda 12.3+
+- [#476](https://github.com/flashinfer-ai/flashinfer/pull/476) chore(main): release 0.2.0
+  - 合入时间: 2024-12-17T12:59:05Z
+  - 解决问题: 🤖 I have created a release beep boop 0.2.0 (2024-12-17) Release Blog.
+- [#676](https://github.com/flashinfer-ai/flashinfer/pull/676) doc: expose MLA decode API to documentation
+  - 合入时间: 2024-12-17T12:15:57Z
+  - 解决问题: BatchDecodeMlaWithPagedKVCacheWrapper is not indexed.
+- [#672](https://github.com/flashinfer-ai/flashinfer/pull/672) feat: add JIT compilation support for FA3 templates
+  - 合入时间: 2024-12-17T07:27:40Z
+  - 解决问题: Follow up work of #667
+- [#670](https://github.com/flashinfer-ai/flashinfer/pull/670) bugfix: fix JIT compilation of batch prefill attention kernels
+  - 合入时间: 2024-12-17T05:25:18Z
+  - 解决问题: The batch prefill attention JIT template was broken in #635 because we messed up some jinja syntax.
+- [#667](https://github.com/flashinfer-ai/flashinfer/pull/667) perf: Dense and sparse customizable flashattention-3 template
+  - 合入时间: 2024-12-16T13:08:53Z
+  - 解决问题: This PR adds flashattention-3 template for improving prefill performance on hopper.
+- [#662](https://github.com/flashinfer-ai/flashinfer/pull/662) ci: cross python wheel
+  - 合入时间: 2024-12-14T09:28:39Z
+  - 解决问题: We can build a single python wheel for all supported python versions.
+- [#650](https://github.com/flashinfer-ai/flashinfer/pull/650) Fix MLA decode error having v_scale without return_lse
+  - 合入时间: 2024-12-05T17:48:52Z
+  - 解决问题: [rank0]: File "/home/simonmo/.conda/envs/vllm/lib/python3.10/site-packages/flashinfer/decode.py", line 1408, in run [rank0]: out[0] *= v_sc…
+- [#644](https://github.com/flashinfer-ai/flashinfer/pull/644) Reduce total_num_tiles_q by one
+  - 合入时间: 2024-12-04T10:27:50Z
+  - 解决问题: The bound can be reduced by one to slightly decrease workspace memory usage.
+
+## 2024-11（27）
+
+- [#640](https://github.com/flashinfer-ai/flashinfer/pull/640) Fix the batch size/seq len args for the decode kernel with tensor cores
+  - 合入时间: 2024-11-26T08:38:13Z
+  - 解决问题: A prior PR switched up the two arguments via a typo, without tests catching the problem.
+- [#639](https://github.com/flashinfer-ai/flashinfer/pull/639) Fix the maximal grid dimension in prefill planning with CUDA graphs
+  - 合入时间: 2024-11-25T19:10:52Z
+  - 解决问题: Previously, differences in the contents of qo_indptr could lead to block sizes varying across CUDA graph invocations, leading to illegal me…
+- [#633](https://github.com/flashinfer-ai/flashinfer/pull/633) bugfix: fix sliding window attention tests of ragged attention api
+  - 合入时间: 2024-11-24T10:56:31Z
+  - 解决问题: The unittests of sliding window atteniton didn't pass because we forget to set causal in plan function.
+- [#632](https://github.com/flashinfer-ai/flashinfer/pull/632) perf: speedup jit compilation of prefill attention kernels
+  - 合入时间: 2024-11-24T10:38:28Z
+  - 解决问题: Followup of #628, this PR splits prefill attention jit templates so that we compile different mask modes in different files.
+- [#628](https://github.com/flashinfer-ai/flashinfer/pull/628) jit: further accelerate compilation by spliting files and multi-threading
+  - 合入时间: 2024-11-23T22:39:46Z
+  - 解决问题: This PR accelerates JIT compilation by: Add a parallel_load_modules function to load necessary modules for a model in parallel using python…
+- [#625](https://github.com/flashinfer-ai/flashinfer/pull/625) bugfix: fix append_paged_kv_cache test
+  - 合入时间: 2024-11-21T10:42:07Z
+  - 解决问题: bugfix: fix append_paged_kv_cache test
+- [#624](https://github.com/flashinfer-ai/flashinfer/pull/624) bugfix: fix prefill kernel uris for aot compilation
+  - 合入时间: 2024-11-21T01:09:28Z
+  - 解决问题: mask is no longer part of uris, this PR fixes the issue, otherwise our aot wheels will still trigger JIT compilation for prefill kernels.
+- [#620](https://github.com/flashinfer-ai/flashinfer/pull/620) bugfix: fix MLA with new JIT pipeline
+  - 合入时间: 2024-11-20T09:58:17Z
+  - 解决问题: Some of the commits for fixing MLA are missing in #618, this PR add them back.
+- [#619](https://github.com/flashinfer-ai/flashinfer/pull/619) bugfix: fix the rope correctness issue introduced in #609
+  - 合入时间: 2024-11-20T09:43:46Z
+  - 解决问题: As observed by @james-p-xu, #609 produce wrong results for some input shapes, this PR fixes the correctness issue, and add optimizations of…
+- [#613](https://github.com/flashinfer-ai/flashinfer/pull/613) Fix compile error of OptionalCUDAGuard and device_of
+  - 合入时间: 2024-11-18T19:43:08Z
+  - 解决问题: There are some compile errors in the main branch, like /app/python/csrc_aot/single_prefill.cu(59): error: namespace "at::cuda" has no membe…
+- [#611](https://github.com/flashinfer-ai/flashinfer/pull/611) misc: add device guard for kernels
+  - 合入时间: 2024-11-15T19:23:57Z
+  - 解决问题: plan Check all kernels and add device guard Complete the tests FIX: #452
+- [#609](https://github.com/flashinfer-ai/flashinfer/pull/609) Improve parallelism in RoPE with pos_ids
+  - 合入时间: 2024-11-14T07:46:16Z
+  - 解决问题: The previous kernel was not parallelised sufficiently well for low batch sizes.
+- [#607](https://github.com/flashinfer-ai/flashinfer/pull/607) test: add DtypeKV template param in bench_batch_decode
+  - 合入时间: 2024-11-13T03:53:17Z
+  - 解决问题: Add typename TKV so that it's convenient to benchmark FP8 KVCache.
+- [#606](https://github.com/flashinfer-ai/flashinfer/pull/606) doc: improve the docstring of `append_paged_kv_cache`
+  - 合入时间: 2024-11-11T06:28:14Z
+  - 解决问题: Remove unnecessary note.
+- [#605](https://github.com/flashinfer-ai/flashinfer/pull/605) feat: simplify prefill JIT compilation
+  - 合入时间: 2024-11-11T06:16:10Z
+  - 解决问题: Compile all three mask modes (causal/non-causal/custom) altogether instead of compiling them one-by-one.
+- [#602](https://github.com/flashinfer-ai/flashinfer/pull/602) perf: fix prefill kernel performance degradation (step 1)
+  - 合入时间: 2024-11-11T00:24:18Z
+  - 解决问题: The prefill attention kernel performance has degraded significantly in recent releases (since v0.1.2), especially on A100 when causal=True,…
+- [#601](https://github.com/flashinfer-ai/flashinfer/pull/601) hotfix: fix rope tvm wrapper
+  - 合入时间: 2024-11-10T23:43:51Z
+  - 解决问题: The TVM wrapper was broken in #599 because of API changes, this PR fixes the issue.
+- [#599](https://github.com/flashinfer-ai/flashinfer/pull/599) feat: add `rotary_dim` argument to rope APIs for partial apply rope
+  - 合入时间: 2024-11-10T05:46:08Z
+  - 解决问题: This PR implements the final piece of #530 , so that we can partially apply rotary embedding to first head dimensions instead of entire hea…
+- [#597](https://github.com/flashinfer-ai/flashinfer/pull/597) Fix the type of `paged_kv_cache` in append
+  - 合入时间: 2024-11-08T16:30:12Z
+  - 解决问题: The type is adjusted to be consistent with the prefill/decode wrappers.
+- [#594](https://github.com/flashinfer-ai/flashinfer/pull/594) misc: refactor cutlass includes
+  - 合入时间: 2024-11-08T06:01:43Z
+  - 解决问题: Move cutlass utilities outside of gemm folder as we are about to use cutlass for attention kernels.
+- [#590](https://github.com/flashinfer-ai/flashinfer/pull/590) include convert latency in bench_append_paged_kv_cache
+  - 合入时间: 2024-11-06T22:51:08Z
+  - 解决问题: model: l1b seqlens: [1, 1, 1, 1, 1, 1, 1, 1] convert: 45us 1layer: 7us 16layers: 151us throughput: 4.936GB/s model: l1b seqlens: [4993, 1,…
+- [#588](https://github.com/flashinfer-ai/flashinfer/pull/588) perf: fix the performance issue of `append_paged_kv_cache`
+  - 合入时间: 2024-11-06T22:02:19Z
+  - 解决问题: The performance of append_paged_kv_cache is terrible for small batch size, which is a known issue that we haven't fixed for a long time, th…
+- [#585](https://github.com/flashinfer-ai/flashinfer/pull/585) feat: support cached cos/sin in rope APIs
+  - 合入时间: 2024-11-05T11:44:16Z
+  - 解决问题: As requested in #530 , this PR implements the RoPE with cached cos/sin embeddings, which is more flexible in some use cases.
+- [#582](https://github.com/flashinfer-ai/flashinfer/pull/582) fix broken tvm integration caused by #568
+  - 合入时间: 2024-11-05T10:39:44Z
+  - 解决问题: Hi, now tvm wrapper build failed cause by #568.
+- [#583](https://github.com/flashinfer-ai/flashinfer/pull/583) add benchmark for append_paged_kv_cache
+  - 合入时间: 2024-11-05T05:53:40Z
+  - 解决问题: Add a python benchmark for append_paged_kv_cache.
+- [#578](https://github.com/flashinfer-ai/flashinfer/pull/578) return type overload for return_lse
+  - 合入时间: 2024-11-02T02:40:48Z
+  - 解决问题: Make mypy and pylance happy.
+- [#551](https://github.com/flashinfer-ai/flashinfer/pull/551) feat: support MLA decode
+  - 合入时间: 2024-11-02T02:39:25Z
+  - 解决问题: Hi, this PR implements MLA decode algorithm, I would love to hear your thoughts on this design and implementation.
+
+## 2024-10（24）
+
+- [#573](https://github.com/flashinfer-ai/flashinfer/pull/573) Fix Sphinx
+  - 合入时间: 2024-10-31T08:54:35Z
+  - 解决问题: Here's the reason why docs fail to build after #552: As specified in conf.py, Sphinx mocks torch.
+- [#572](https://github.com/flashinfer-ai/flashinfer/pull/572) fix broken cpp integration caused by #567
+  - 合入时间: 2024-10-30T12:54:36Z
+  - 解决问题: Hi, cpp integration was broken again by #567, please be aware that there are cpp test, cpp benchmark and also tvm integration, they all rel…
+- [#567](https://github.com/flashinfer-ai/flashinfer/pull/567) refactor: Refactor JIT and AOT build script
+  - 合入时间: 2024-10-30T07:20:25Z
+  - 解决问题: Previously, JIT and AOT packaging is a bit broken.
+- [#569](https://github.com/flashinfer-ai/flashinfer/pull/569) torch custom_op fix for rope
+  - 合入时间: 2024-10-30T02:34:57Z
+  - 解决问题: Fix after changes made in #568 torch.compile doesn't like returning input arguments.
+- [#568](https://github.com/flashinfer-ai/flashinfer/pull/568) feat: support huggingface transformer style rope interface
+  - 合入时间: 2024-10-29T21:51:19Z
+  - 解决问题: Previously our rope apis assume the position indices of each request is contiguous, which is not appropriate for applications such as specu…
+- [#563](https://github.com/flashinfer-ai/flashinfer/pull/563) bugfix: fix the sliding window iteration bound for SWA in batch prefill operators
+  - 合入时间: 2024-10-27T09:38:09Z
+  - 解决问题: The iteration bound for sliding window in batch prefill kernels is wrong, this PR fixes the issue.
+- [#561](https://github.com/flashinfer-ai/flashinfer/pull/561) perf: remove unnecessary contiguous operation in block sparse attention
+  - 合入时间: 2024-10-26T22:01:58Z
+  - 解决问题: The contiguous operation is no longer required after #513
+- [#560](https://github.com/flashinfer-ai/flashinfer/pull/560) perf: use cuda-core implemention for io-bound block-sparse attention
+  - 合入时间: 2024-10-26T21:37:10Z
+  - 解决问题: When operational intensity is low, select cuda-core implementations for block-sparse attention.
+- [#559](https://github.com/flashinfer-ai/flashinfer/pull/559) bugfix: fix `batch_prefill.cu` in AOT mode after #554
+  - 合入时间: 2024-10-26T21:29:43Z
+  - 解决问题: #554 didn't update the batch_prefill.cu (which was used in AOT mode) according to the API change.
+- [#554](https://github.com/flashinfer-ai/flashinfer/pull/554) feat: torch.compile and custom_op support
+  - 合入时间: 2024-10-25T02:51:12Z
+  - 解决问题: Follow up of #552.
+- [#556](https://github.com/flashinfer-ai/flashinfer/pull/556) bugfix: fix block sparse wrappers
+  - 合入时间: 2024-10-25T02:39:14Z
+  - 解决问题: The block sparse attention unittests failed as noted in #554, this PR fixes the issue.
+- [#553](https://github.com/flashinfer-ai/flashinfer/pull/553) feat: non-contiguous query with paged kv cache
+  - 合入时间: 2024-10-25T02:09:08Z
+  - 解决问题: Motivation Previously, only ragged version of prefill kernel supported non-contiguous query tensor (#404).
+- [#544](https://github.com/flashinfer-ai/flashinfer/pull/544) bugfix: Fix the default value of `data_type` in batch decode plan function
+  - 合入时间: 2024-10-22T08:28:03Z
+  - 解决问题: As mentioned in #543 , the behavior of batch decode plan function is problematic if we use the combo of q_data_type and kv_data_type.
+- [#546](https://github.com/flashinfer-ai/flashinfer/pull/546) bugfix: fix jit compilation for single decode with tensor cores
+  - 合入时间: 2024-10-22T08:16:47Z
+  - 解决问题: The arguments have wrong order.
+- [#542](https://github.com/flashinfer-ai/flashinfer/pull/542) bugfix: backward compatibility
+  - 合入时间: 2024-10-20T08:27:09Z
+  - 解决问题: We recently changed the plan function signature and remove the data_type argument, which is not compatible with some old version.
+- [#540](https://github.com/flashinfer-ai/flashinfer/pull/540) Fix the "not enough values to unpack" error.
+  - 合入时间: 2024-10-19T07:35:05Z
+  - 解决问题: This PR fixes the following error: File "/home/yuxianq/flashinfer/python/flashinfer/decode.py", line 616, in plan self._cached_module = get…
+- [#536](https://github.com/flashinfer-ai/flashinfer/pull/536) bugfix: fix JIT compilation of prefill kernels
+  - 合入时间: 2024-10-18T00:19:42Z
+  - 解决问题: Some bugs were introduced in #534, this PR fix these issues.
+- [#535](https://github.com/flashinfer-ai/flashinfer/pull/535) jit: simplify jit example
+  - 合入时间: 2024-10-17T09:58:27Z
+  - 解决问题: use generate_module function fix the correctness issue with flashsigmoid (when use_softmax is false, use attention sum instead of merge sta…
+- [#533](https://github.com/flashinfer-ai/flashinfer/pull/533) feat: add a `use_softmax` field in variant class
+  - 合入时间: 2024-10-16T06:18:04Z
+  - 解决问题: If true, use online softmax rules to update attention states.
+- [#527](https://github.com/flashinfer-ai/flashinfer/pull/527) bugfix: fix the stride bug in page append
+  - 合入时间: 2024-10-11T20:31:18Z
+  - 解决问题: We introduced a bug in #513 because we didn't consider non-contiguous kv-cache for page append operator, this PR fix the bug.
+- [#525](https://github.com/flashinfer-ai/flashinfer/pull/525) misc: remove unused functions in prefill parameters
+  - 合入时间: 2024-10-11T06:36:49Z
+  - 解决问题: get_mask_offset was deprecated.
+- [#518](https://github.com/flashinfer-ai/flashinfer/pull/518) refactor: remove warp layout enum
+  - 合入时间: 2024-10-09T23:36:39Z
+  - 解决问题: In our previous design of WarpLayout abstractions, we mix (1) the warp layout (number of warps on q and kv) and (2) the number of fragments…
+- [#513](https://github.com/flashinfer-ai/flashinfer/pull/513) Feature/non contiguous kv cache
+  - 合入时间: 2024-10-09T11:00:43Z
+  - 解决问题: This PR solves #506 Custom strides to support non-contiguous kv cache.
+- [#507](https://github.com/flashinfer-ai/flashinfer/pull/507) feat: JIT compilation
+  - 合入时间: 2024-10-07T00:17:54Z
+  - 解决问题: This PR implements the JIT compilation (#170 ) of flashinfer, after this PR, flashinfer will compile kernels just-in-time for different inp…
+
+## 2024-09（1）
+
+- [#505](https://github.com/flashinfer-ai/flashinfer/pull/505) fix: batch decode kernel redundant store output to gmem
+  - 合入时间: 2024-09-25T08:25:02Z
+  - 解决问题: Hi, this is a minor fix, when bdz is greater than 1, there would be redundant store to gmem operations for some warps.
+
+## 2024-08（16）
+
+- [#473](https://github.com/flashinfer-ai/flashinfer/pull/473) hotfix: skip prefill kernels on sm75 for bf16
+  - 合入时间: 2024-08-27T10:05:15Z
+  - 解决问题: Followup of #472 .
+- [#447](https://github.com/flashinfer-ai/flashinfer/pull/447) chore(main): release 0.1.6
+  - 合入时间: 2024-08-27T01:18:37Z
+  - 解决问题: 🤖 I have created a release beep boop 0.1.6 (2024-08-27) SM75 Support Starting from 0.1.6, our pre-built wheels include experimental support…
+- [#466](https://github.com/flashinfer-ai/flashinfer/pull/466) refactor: replace `begin_forward`/`forward`/`end_forward` with `plan`/`run`
+  - 合入时间: 2024-08-25T08:56:21Z
+  - 解决问题: This PR changes the use of begin_forward/forward/end_forward API with the new plan/run API.
+- [#463](https://github.com/flashinfer-ai/flashinfer/pull/463) doc: another bunch of documentation improvement
+  - 合入时间: 2024-08-23T03:54:09Z
+  - 解决问题: fix broken links add rope docs add default option for sampling apis
+- [#462](https://github.com/flashinfer-ai/flashinfer/pull/462) feat: add `MultiLevelCascadeAttentionWrapper` API
+  - 合入时间: 2024-08-22T11:28:03Z
+  - 解决问题: Our existing cascade inference APIs all assumes shared prefix kv-cache are standalone tensors which is not the case for real-world llm serv…
+- [#459](https://github.com/flashinfer-ai/flashinfer/pull/459) perf: use persistent kernel for merging attention states
+  - 合入时间: 2024-08-21T19:08:36Z
+  - 解决问题: As observed by @MasterJH5574 , there are cases where our VariableLengthMergeStatesKernel launches a lot of CTAs (>=10k) while most of the C…
+- [#460](https://github.com/flashinfer-ai/flashinfer/pull/460) bugfix: fix the python api of prefill wrapper + custom mask
+  - 合入时间: 2024-08-21T17:21:46Z
+  - 解决问题: some tests are failed because we use the wrong function for prefill wrapper with custom mask, this pr fixes the issue.
+- [#448](https://github.com/flashinfer-ai/flashinfer/pull/448) bugfix: fix the prefill/append attention kernel accuracy issue on sm75
+  - 合入时间: 2024-08-16T00:55:45Z
+  - 解决问题: As reported by @esmeetu , the prefill/append attention kernel produce incorrect results on sm75.
+- [#446](https://github.com/flashinfer-ai/flashinfer/pull/446) fix: resolve cu121 compile wired issue
+  - 合入时间: 2024-08-14T09:47:11Z
+  - 解决问题: cc @yzh119 @Ying1123 @Yard1 @comaniac
+- [#435](https://github.com/flashinfer-ai/flashinfer/pull/435) chore(main): release 0.1.5
+  - 合入时间: 2024-08-13T10:19:31Z
+  - 解决问题: 🤖 I have created a release beep boop 0.1.5 (2024-08-13) Bugfix Fix PagedPrefill python api and some typos (#441) (3fff008) fix prefill kern…
+- [#442](https://github.com/flashinfer-ai/flashinfer/pull/442) feat: decouple float and int workspace buffer
+  - 合入时间: 2024-08-13T10:02:38Z
+  - 解决问题: Before this PR, flashinfer coupled float and int buffers in a single workspace buffer, and different wrappers cannot share the same buffers.
+- [#441](https://github.com/flashinfer-ai/flashinfer/pull/441) Fix PagedPrefill python api and some typos
+  - 合入时间: 2024-08-13T09:26:56Z
+  - 解决问题: Fix two small bugs: “NHD” and "HND" used confusing PagedPrefill use self._custom_mask_buf to judge whether is customized_mask, but uninitia…
+- [#440](https://github.com/flashinfer-ai/flashinfer/pull/440) bugfix: fix prefill kernels' lse result for empty kv-cache
+  - 合入时间: 2024-08-13T07:54:27Z
+  - 解决问题: Thank @hnyls2002 for spotting this bug.
+- [#415](https://github.com/flashinfer-ai/flashinfer/pull/415) chore(main): release 0.1.4
+  - 合入时间: 2024-08-09T09:07:01Z
+  - 解决问题: 🤖 I have created a release beep boop 0.1.4 (2024-08-09) Features append attention kernels for fp8 kv-cache (#420) (906c2f5) support min_p s…
+- [#426](https://github.com/flashinfer-ai/flashinfer/pull/426) docs: update README
+  - 合入时间: 2024-08-07T08:11:27Z
+  - 解决问题: fix cc @yzh119 /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/crti.o: in function `_init': (.init+0xb): relocation truncated to…
+- [#420](https://github.com/flashinfer-ai/flashinfer/pull/420) feat: append attention kernels for fp8 kv-cache
+  - 合入时间: 2024-08-06T09:26:03Z
+  - 解决问题: This implementation do not rely on fp8 tensor cores, but uses fp16 tensor cores instead (so sm_80 architectures can also use it), the fp8 k…
+
+## 2024-07（23）
+
+- [#414](https://github.com/flashinfer-ai/flashinfer/pull/414) bump version: v0.1.3
+  - 合入时间: 2024-07-31T10:47:28Z
+  - 解决问题: 0.1.3 (2024-07-31) Bugfix bugfix: Fix cudagraph mode of BatchPrefillWithRaggedKVCacheWrapper (#412) (9907bc) fix cu118 cub usage for sampli…
+- [#413](https://github.com/flashinfer-ai/flashinfer/pull/413) misc: enhance allocator error info and add shape check for prefill begin forward functions
+  - 合入时间: 2024-07-31T10:38:34Z
+  - 解决问题: This PR makes the following changes to the codebase: make the allocators error information more informative, more specifically, we print th…
+- [#407](https://github.com/flashinfer-ai/flashinfer/pull/407) ptx: fragment layout swizzling kernels
+  - 合入时间: 2024-07-29T12:26:37Z
+  - 解决问题: Composed instructions for fragment layout swizzling, used in our fp8 (fake/real quantization) prefill kernels.
+- [#394](https://github.com/flashinfer-ai/flashinfer/pull/394) chore(main): release 0.1.2
+  - 合入时间: 2024-07-29T12:11:13Z
+  - 解决问题: 🤖 I have created a release beep boop 0.1.2 (2024-07-29) Bugfix Fix the sampling kernel bug for cu118 (#386, #387) (0cd499, dc3f18) Features…
+- [#406](https://github.com/flashinfer-ai/flashinfer/pull/406) feat: sliding window attention
+  - 合入时间: 2024-07-29T12:05:33Z
+  - 解决问题: As requested in #390 , this PR implements sliding window attention.
+- [#405](https://github.com/flashinfer-ai/flashinfer/pull/405) feat: non-inplace rope operators
+  - 合入时间: 2024-07-29T04:39:24Z
+  - 解决问题: As requested in #403, this PR implements non-inplace rope operators.
+- [#404](https://github.com/flashinfer-ai/flashinfer/pull/404) feat: support non-contiguous (packed) input for prefill kernels
+  - 合入时间: 2024-07-29T03:18:19Z
+  - 解决问题: This PR implements #311 , after this PR, we support packed qkv input without explictly convert make the input contiguous: packed_qkv = W_qk…
+- [#401](https://github.com/flashinfer-ai/flashinfer/pull/401) feat: add llama 3.1 style rope
+  - 合入时间: 2024-07-27T10:37:28Z
+  - 解决问题: Reference implementation: https://github.com/meta-llama/llama-models/blob/709a61fd810157f75fbb314e7287089eec06d9c3/models/llama3_1/api/mode…
+- [#388](https://github.com/flashinfer-ai/flashinfer/pull/388) misc: clang-format prefill.cuh
+  - 合入时间: 2024-07-21T04:28:14Z
+  - 解决问题: misc: clang-format prefill.cuh
+- [#381](https://github.com/flashinfer-ai/flashinfer/pull/381) chore(main): release 0.1.1
+  - 合入时间: 2024-07-20T09:15:22Z
+  - 解决问题: 🤖 I have created a release beep boop 0.1.1 (2024-07-20) Bugfix fix the invalid kernel configuration for architectures with small shared mem…
+- [#383](https://github.com/flashinfer-ai/flashinfer/pull/383) feat: expose decoupled kv-cache to pytorch api
+  - 合入时间: 2024-07-20T01:24:59Z
+  - 解决问题: Followup of #379
+- [#379](https://github.com/flashinfer-ai/flashinfer/pull/379) refactor: decouple kv-cache storage
+  - 合入时间: 2024-07-18T08:38:36Z
+  - 解决问题: In our previous design, k-cache and v-cache are coupled together as a (num_pages, 2, page_size, num_heads, head_dim) or a (num_pages, 2, nu…
+- [#373](https://github.com/flashinfer-ai/flashinfer/pull/373) chore(main): release 0.1.0
+  - 合入时间: 2024-07-17T08:29:28Z
+  - 解决问题: 🤖 I have created a release beep boop 0.1.0 (2024-07-17) Features Add mask to merge_state_in_place (#372) (e14fa81) expose pytorch api for b…
+- [#375](https://github.com/flashinfer-ai/flashinfer/pull/375) feat: expose pytorch api for block sparse attention
+  - 合入时间: 2024-07-17T08:28:40Z
+  - 解决问题: The block sparse attention (for any block size (R, C)) are hidden in flashinfer's codebase but it was never exposed explicitly in python.
+- [#359](https://github.com/flashinfer-ai/flashinfer/pull/359) chore(main): release 0.0.9
+  - 合入时间: 2024-07-12T05:54:32Z
+  - 解决问题: 🤖 I have created a release beep boop 0.0.9 (2024-07-12) Bugfix fix the decode kernel segfault in cudagraph mode (#368)(c69cfa) fix decode k…
+- [#368](https://github.com/flashinfer-ai/flashinfer/pull/368) bugfix: fix the decode kernel segfault in cudagraph mode
+  - 合入时间: 2024-07-11T06:16:48Z
+  - 解决问题: The begin_forward function in decode attention wrappers sometimes triggers segfault, this PR fixes the issue.
+- [#364](https://github.com/flashinfer-ai/flashinfer/pull/364) refactor: slight refactor of prefill kernels
+  - 合入时间: 2024-07-10T08:22:30Z
+  - 解决问题: add __launch_bounds__ add unroll hint for prefetching page indices change loop structure of threadblock_sync_mdo_states
+- [#363](https://github.com/flashinfer-ai/flashinfer/pull/363) bugfix: fix decode kernels output for empty kv cache
+  - 合入时间: 2024-07-10T07:01:39Z
+  - 解决问题: When some request has empty kv cache, the output of decode kernels doesn't align with prefill kernels.
+- [#356](https://github.com/flashinfer-ai/flashinfer/pull/356) perf: accelerate gqa performance
+  - 合入时间: 2024-07-04T07:57:33Z
+  - 解决问题: Changes: Prefetch page indices (we have already done such optimization on decode kernels, but not on append/prefill kernels which was used…
+- [#355](https://github.com/flashinfer-ai/flashinfer/pull/355) bump version: v0.0.8
+  - 合入时间: 2024-07-03T07:57:31Z
+  - 解决问题: 0.0.8 (2024-07-03) Bugfix fix prefill/append kernel behavior for empty kv-cache (#353) (7adc8c) fix decode attention kernel with logits cap…
+- [#353](https://github.com/flashinfer-ai/flashinfer/pull/353) bugfix: fix prefill/append kernel behavior for empty kv-cache.
+  - 合入时间: 2024-07-03T07:42:37Z
+  - 解决问题: The prefill kernels was buggy when some of the requests have empty kv-cache, this PR fixes the issue.
+- [#352](https://github.com/flashinfer-ai/flashinfer/pull/352) tests: add more unittests for logits cap
+  - 合入时间: 2024-07-03T04:47:24Z
+  - 解决问题: followup of #350 add the case of logits_soft_case=1.0 to correctness tests.
+- [#350](https://github.com/flashinfer-ai/flashinfer/pull/350) hotfix: fix the decode kernel with logits cap
+  - 合入时间: 2024-07-03T03:32:19Z
+  - 解决问题: logits soft cap should be applied before masking.
+
+## 2024-06（21）
+
+- [#343](https://github.com/flashinfer-ai/flashinfer/pull/343) refactor: reduce the binary size of batch decode kernels
+  - 合入时间: 2024-06-30T06:58:57Z
+  - 解决问题: This PR refactors the batch decode related kernels, and make the following breaking changes: remove batch_decode_with_padded_kv_cache opera…
+- [#340](https://github.com/flashinfer-ai/flashinfer/pull/340) [CMake][Bugfix] Set default value for FLASHINFER_GEN_MASK_MODES
+  - 合入时间: 2024-06-28T17:48:16Z
+  - 解决问题: This commit resolves a build-time error with the following message: CMake Error at 3rdparty/flashinfer/CMakeLists.txt:313 (add_library): No…
+- [#338](https://github.com/flashinfer-ai/flashinfer/pull/338) benchmark: add batch prefill with ragged kv-cache benchmark
+  - 合入时间: 2024-06-28T07:40:13Z
+  - 解决问题: benchmark: add batch prefill with ragged kv-cache benchmark
+- [#232](https://github.com/flashinfer-ai/flashinfer/pull/232) chore(main): release 0.0.5
+  - 合入时间: 2024-06-20T08:41:56Z
+  - 解决问题: 🤖 I have created a release beep boop 0.1.0 (2024-06-20) Highlights Support any GQA group size support for tensor-cores kernels.
+- [#317](https://github.com/flashinfer-ai/flashinfer/pull/317) feat: add `use_tensor_cores` option to decode kernels to accelerate GQA
+  - 合入时间: 2024-06-20T08:14:04Z
+  - 解决问题: The tensor-cores accelerated GQA in our blog post was not enabled by default (user need to use Prefill kernels/wrappers for decode to get s…
+- [#310](https://github.com/flashinfer-ai/flashinfer/pull/310) perf: split kv-cache for prefill/append kernels
+  - 合入时间: 2024-06-20T06:47:07Z
+  - 解决问题: Duplicate of #75, but re-based on the main branch.
+- [#308](https://github.com/flashinfer-ai/flashinfer/pull/308) perf: use packed bit array for attention mask
+  - 合入时间: 2024-06-16T07:50:50Z
+  - 解决问题: float attention mask consumes too much gpu memory and makes the attention kernel slow.
+- [#306](https://github.com/flashinfer-ai/flashinfer/pull/306) refactor: remove `page_size` from template parameters for prefill kernels
+  - 合入时间: 2024-06-15T20:30:26Z
+  - 解决问题: Similar to #301 , in this PR we remove page_size from template parameters so that we can support any page_size for prefill kernels (previou…
+- [#301](https://github.com/flashinfer-ai/flashinfer/pull/301) rafactor: move `gqa_group_size` from template parameter to input arguments
+  - 合入时间: 2024-06-15T06:44:05Z
+  - 解决问题: #262 is out of sync with main, this PR rebased the code on main branch.
+- [#300](https://github.com/flashinfer-ai/flashinfer/pull/300) doc: fix logits cap docstring
+  - 合入时间: 2024-06-14T09:39:47Z
+  - 解决问题: follow up of #299, pre-attention -> pre-softmax.
+- [#299](https://github.com/flashinfer-ai/flashinfer/pull/299) doc: fix the description of logits cap in docstring
+  - 合入时间: 2024-06-14T09:36:44Z
+  - 解决问题: The logits cap was applied to pre-attention logits, not attention scores.
+- [#286](https://github.com/flashinfer-ai/flashinfer/pull/286) feat: Separate Q and KV dtypes for decode
+  - 合入时间: 2024-06-13T23:47:20Z
+  - 解决问题: Closes #285 Modified unit tests pass.
+- [#294](https://github.com/flashinfer-ai/flashinfer/pull/294) refactor: refactor decode handler
+  - 合入时间: 2024-06-10T10:33:26Z
+  - 解决问题: Change the use of an optional fixed_grid_size to padded_batch_size.
+- [#291](https://github.com/flashinfer-ai/flashinfer/pull/291) bugfix: Fix the behavior of decode cuda graph wrapper
+  - 合入时间: 2024-06-10T07:07:29Z
+  - 解决问题: In this PR, we fixed the grid size of the kernels launched by a decode cuda graph wrapper: We always pad the block size to a fixed value.
+- [#289](https://github.com/flashinfer-ai/flashinfer/pull/289) feat: initial support of distributed operators
+  - 合入时间: 2024-06-08T08:24:26Z
+  - 解决问题: This PR implements the attention all-reduce kernel which will be used in merging attention states from different GPUs in sequence paralleli…
+- [#287](https://github.com/flashinfer-ai/flashinfer/pull/287) cmake: fix DECODE_F8_DTYPES and DECODE_FP8_DTYPES discrepancy
+  - 合入时间: 2024-06-07T08:13:26Z
+  - 解决问题: As a result of typo, it appeared two variables: DECODE_F8_DTYPES and DECODE_FP8_DTYPES in CMakeLists.txt.
+- [#281](https://github.com/flashinfer-ai/flashinfer/pull/281) bugfix: fix cudagraph-compatible prefill/decode apis
+  - 合入时间: 2024-06-04T05:21:43Z
+  - 解决问题: The indptr array length should be a upper-bound of batch_size + 1 in cuda graph mode.
+- [#277](https://github.com/flashinfer-ai/flashinfer/pull/277) feat: support cuda graph for batched multi-query(prefill/append) attention
+  - 合入时间: 2024-06-02T09:14:42Z
+  - 解决问题: #275 is not complete, this pr pushes the remaining changes.
+- [#276](https://github.com/flashinfer-ai/flashinfer/pull/276) Revert "feat: support cuda graph for batched multi-query(prefill/append) attention"
+  - 合入时间: 2024-06-02T09:11:47Z
+  - 解决问题: Reverts #275
+- [#275](https://github.com/flashinfer-ai/flashinfer/pull/275) feat: support cuda graph for batched multi-query(prefill/append) attention
+  - 合入时间: 2024-06-02T09:08:11Z
+  - 解决问题: Followup of #187 and #256
+- [#273](https://github.com/flashinfer-ai/flashinfer/pull/273) fp8: add calibration scale for decode attention operators
+  - 合入时间: 2024-06-01T10:35:28Z
+  - 解决问题: @comaniac
+
+## 2024-05（4）
+
+- [#271](https://github.com/flashinfer-ai/flashinfer/pull/271) doc: add some documentation for attention with mask API
+  - 合入时间: 2024-05-30T01:08:24Z
+  - 解决问题: add fix the bugs in single_prefill_with_kv_cache and single_prefill_with_kv_cache_return_lse when using mask.
+- [#266](https://github.com/flashinfer-ai/flashinfer/pull/266) feat: support custom attention mask in prefill/append attention kernels
+  - 合入时间: 2024-05-28T06:24:29Z
+  - 解决问题: Some speculative decoding algorithms requires tree attention, which could be supported via prefill/append attention kernels with custom att…
+- [#256](https://github.com/flashinfer-ai/flashinfer/pull/256) perf: initial cuda graph support
+  - 合入时间: 2024-05-24T22:36:03Z
+  - 解决问题: As requested in #187 , this PR adds initial support of CUDAGraph compatibility of flashinfer batch decode attention kernels.
+- [#223](https://github.com/flashinfer-ai/flashinfer/pull/223) support versatile gqa size for batch prefill
+  - 合入时间: 2024-05-15T06:03:22Z
+  - 解决问题: This merge request supports versatile gqa size for batch prefill kernels.
+
+## 2024-04（3）
+
+- [#209](https://github.com/flashinfer-ai/flashinfer/pull/209) move dispatch for batch prefill
+  - 合入时间: 2024-04-24T21:44:34Z
+  - 解决问题: move DISPATCH_PAGE_SIZE out of BatchPrefillWithPagedKVCacheWrapperDispatched
+- [#203](https://github.com/flashinfer-ai/flashinfer/pull/203) Update CMakeLists.txt
+  - 合入时间: 2024-04-16T21:09:59Z
+  - 解决问题: Update COMMAND python to COMMAND python3 to ensure that build uses python 3.X rather than defaulting to python 2.X in case python is not in…
+- [#198](https://github.com/flashinfer-ai/flashinfer/pull/198) [CMake] Add positional independent code (PIC) option to kernels
+  - 合入时间: 2024-04-09T00:47:25Z
+  - 解决问题: This PR adds the -fPIC option to prefill/decode kernels for packaging.
+
+## 2024-03（10）
+
+- [#177](https://github.com/flashinfer-ai/flashinfer/pull/177) fix: fatal bugfix in batch decode operator
+  - 合入时间: 2024-03-12T09:13:05Z
+  - 解决问题: The BatchDecodeWithPagedKVCacheWrapper didn't run into the kernel.
+- [#173](https://github.com/flashinfer-ai/flashinfer/pull/173) bugfix: Fix release wheel script and remove uninstantiated branches in dispatch
+  - 合入时间: 2024-03-11T10:28:40Z
+  - 解决问题: The release action failed because action-gh-release action do not support uploading multiple large files at a time: softprops/action-gh-rel…
+- [#172](https://github.com/flashinfer-ai/flashinfer/pull/172) ci: reduce binary size
+  - 合入时间: 2024-03-11T04:24:05Z
+  - 解决问题: Do not generate prefill kernels for page_size=8 Build with -Xfatbin=-compress-all to reduce binary size.
+- [#171](https://github.com/flashinfer-ai/flashinfer/pull/171) 1. Reduce compile time by 22%+ 2. Fix compile linking error on Ubuntu 22.04 gcc/g++ 11.4 with Cuda 12.4
+  - 合入时间: 2024-03-11T04:14:12Z
+  - 解决问题: Test Env: Os/Container: Ubuntu 22.04 GCC/G++: 11.4.0 (Ubuntu 11.4.0-1ubuntu1~22.04) Cpu: Zen3 9334 (2x) Cpu cores/threads: Container limite…
+- [#167](https://github.com/flashinfer-ai/flashinfer/pull/167) refactor: decouple attention implementation and declaration in different header files
+  - 合入时间: 2024-03-11T01:47:26Z
+  - 解决问题: To accelerate compilation.
+- [#120](https://github.com/flashinfer-ai/flashinfer/pull/120) chore(main): release 0.0.3
+  - 合入时间: 2024-03-08T10:05:53Z
+  - 解决问题: 🤖 I have created a release beep boop 0.0.3 (2024-03-08) Features adding sm_scale field for all attention APIs (#145) (85d4018) enable head_…
+- [#156](https://github.com/flashinfer-ai/flashinfer/pull/156) feat: pytorch api of fp8 kv-cache
+  - 合入时间: 2024-03-05T12:00:58Z
+  - 解决问题: requested in #150 #155 #125
+- [#146](https://github.com/flashinfer-ai/flashinfer/pull/146) feat: support ALiBi
+  - 合入时间: 2024-03-03T11:23:43Z
+  - 解决问题: Implement attention with linear bias (ALiBi).
+- [#145](https://github.com/flashinfer-ai/flashinfer/pull/145) feat: adding `sm_scale` field for all attention APIs
+  - 合入时间: 2024-03-01T11:51:50Z
+  - 解决问题: Some of our attention APIs have this field and some don't, this PR add sm_scale field for all attention APIs to make them consistent.
+- [#144](https://github.com/flashinfer-ai/flashinfer/pull/144) perf: multiple q by sm_scale in decode kernels
+  - 合入时间: 2024-03-01T00:07:43Z
+  - 解决问题: The same optimization was used in our prefill attention kernels, this PR applies this optimization to decode attention kernels.
+
+## 2024-02（5）
+
+- [#143](https://github.com/flashinfer-ai/flashinfer/pull/143) refactor: move attention related headers to flashinfer/attention
+  - 合入时间: 2024-02-29T09:50:55Z
+  - 解决问题: Refactor code structure, we will have not only attention kernels, but also lora/dequantize/sampling kernels soon and they will be placed un…
+- [#132](https://github.com/flashinfer-ai/flashinfer/pull/132) feat: enable `head_dim=256` for attention kernels
+  - 合入时间: 2024-02-25T02:12:51Z
+  - 解决问题: As mentioned in #130 , the kernels for head_dim=256 are not compiled by default, this PR expose these attention kernels to pip wheels and a…
+- [#128](https://github.com/flashinfer-ai/flashinfer/pull/128) support Turing arch
+  - 合入时间: 2024-02-23T07:36:09Z
+  - 解决问题: As I want to push this feature forward, so i tried to work based on #109 , and did some small changes.
+- [#126](https://github.com/flashinfer-ai/flashinfer/pull/126) Passing in attn_score_scaling_factor into tvm_wrapper
+  - 合入时间: 2024-02-19T16:18:59Z
+  - 解决问题: In GPT-2, attention calculation requires an additional feature scale_attn_by_inverse_layer_idx.
+- [#69](https://github.com/flashinfer-ai/flashinfer/pull/69) Support RoPE position info in batch prefill/decode kernels
+  - 合入时间: 2024-02-01T22:27:04Z
+  - 解决问题: This PR adds q/k position information to batch prefill/decode kernels.
+
+## 2024-01（11）
+
+- [#88](https://github.com/flashinfer-ai/flashinfer/pull/88) [Performance] Using user-allocated workspace for batch decode/prefill handlers
+  - 合入时间: 2024-01-26T01:51:06Z
+  - 解决问题: To avoid the overhead of allocating/destroy memory per step.
+- [#85](https://github.com/flashinfer-ai/flashinfer/pull/85) [Refactor] Formalize NHD/HND layout annotation
+  - 合入时间: 2024-01-24T13:04:59Z
+  - 解决问题: We support two different layout annotations (NHD and HND, N: sequence lenght, H: number of heads, D: head dimension) for QKV matrices.
+- [#84](https://github.com/flashinfer-ai/flashinfer/pull/84) [Performance] Fix the fp8 decode kernel performance degradation issue
+  - 合入时间: 2024-01-21T10:13:40Z
+  - 解决问题: The fp8 decode kernel performance degrades because of the changes in previous commits 2a3d6d0 .
+- [#72](https://github.com/flashinfer-ai/flashinfer/pull/72) [Refactor] Use two kernels instead of CUDA cooperative kernel for batch/single decode
+  - 合入时间: 2024-01-18T11:07:49Z
+  - 解决问题: In our initial design we use CUDA cooperative kernels and grid synchronization feature for cross threadblock reduction.
+- [#68](https://github.com/flashinfer-ai/flashinfer/pull/68) [Performance] Another prefill/append parameter tweak
+  - 合入时间: 2024-01-10T15:02:51Z
+  - 解决问题: [Performance] Another prefill/append parameter tweak
+- [#61](https://github.com/flashinfer-ai/flashinfer/pull/61) [Refactor] Update the BeginForward API for batch prefill handler
+  - 合入时间: 2024-01-08T14:32:10Z
+  - 解决问题: gqa_group_size is less intuitive than num_qo_heads + num_kv_heads.
+- [#58](https://github.com/flashinfer-ai/flashinfer/pull/58) [Bugfix] Fix the lse computation for batch decode kernel
+  - 合入时间: 2024-01-08T09:05:11Z
+  - 解决问题: The lse returned by BatchDecodeWithPagedKVCacheKernel is wrong if Paged-KV is splitted.
+- [#55](https://github.com/flashinfer-ai/flashinfer/pull/55) [Performance] Tweak Prefill Parameters
+  - 合入时间: 2024-01-07T09:02:11Z
+  - 解决问题: [Performance] Tweak Prefill Parameters
+- [#48](https://github.com/flashinfer-ai/flashinfer/pull/48) [Performance] Accelerate append prefill kernel
+  - 合入时间: 2024-01-03T15:48:58Z
+  - 解决问题: We found that cooperative kernel (merge states in the same kernel afte grid synchronization) actually limits kernel's performance when merg…
+- [#41](https://github.com/flashinfer-ai/flashinfer/pull/41) [Performance] Cooperative prefill parameter tweak
+  - 合入时间: 2024-01-01T10:02:30Z
+  - 解决问题: Note that prefill kernel's synchronization overhead is larger than decode's.
+- [#36](https://github.com/flashinfer-ai/flashinfer/pull/36) Tweak cooperative prefill parameters, and increase maximum context length in benchmark to 65536
+  - 合入时间: 2024-01-01T05:09:19Z
+  - 解决问题: Tweak cooperative prefill parameters, and increase maximum context length in benchmark to 65536
+
+## 2023-12（4）
+
+- [#33](https://github.com/flashinfer-ai/flashinfer/pull/33) Follow-up split-kv batch decode fix
+  - 合入时间: 2023-12-30T17:13:21Z
+  - 解决问题: Follow-up split-kv batch decode fix
+- [#30](https://github.com/flashinfer-ai/flashinfer/pull/30) batch_prefill python api
+  - 合入时间: 2023-12-25T05:14:07Z
+  - 解决问题: A python api PR,
+- [#26](https://github.com/flashinfer-ai/flashinfer/pull/26) Fix Rotary Embedding kernel
+  - 合入时间: 2023-12-20T04:04:26Z
+  - 解决问题: Fix Rotary Embedding kernel
+- [#20](https://github.com/flashinfer-ai/flashinfer/pull/20) add tvm wrapper for prefill
+  - 合入时间: 2023-12-06T06:44:17Z
+  - 解决问题: add tvm wrapper for prefill
+
+## 2023-11（4）
+
+- [#18](https://github.com/flashinfer-ai/flashinfer/pull/18) allow compiling batch_prefill and batch_decode in separate files
+  - 合入时间: 2023-11-27T06:07:43Z
+  - 解决问题: allow compiling batch_prefill and batch_decode in separate files
+- [#17](https://github.com/flashinfer-ai/flashinfer/pull/17) PyTorch API for Single Request Prefill Operator
+  - 合入时间: 2023-11-27T00:22:40Z
+  - 解决问题: add prefill kernel pytorch api
+- [#13](https://github.com/flashinfer-ai/flashinfer/pull/13) [Decode] KV cache split pre-process update
+  - 合入时间: 2023-11-11T03:44:37Z
+  - 解决问题: This PR applies the following changes to the KV cache split: removed the map structure for temporary array cache, changed cudaMallocAsync t…
+- [#12](https://github.com/flashinfer-ai/flashinfer/pull/12) [Wrapper] Split prefill/decode wrapper
+  - 合入时间: 2023-11-08T18:38:52Z
+  - 解决问题: This PR splits the TVM wrapper so that prefill and decode has their own wrapper function.
+
+## 2023-10（4）
+
+- [#10](https://github.com/flashinfer-ai/flashinfer/pull/10) Skipping prefill for empty sequence
+  - 合入时间: 2023-10-31T23:20:03Z
+  - 解决问题: Skipping prefill for empty sequence
+- [#7](https://github.com/flashinfer-ai/flashinfer/pull/7) [Fix] Free allocated CUDA memory in prefill
+  - 合入时间: 2023-10-15T02:21:22Z
+  - 解决问题: [Fix] Free allocated CUDA memory in prefill
+- [#5](https://github.com/flashinfer-ai/flashinfer/pull/5) Wrapper support for prefill with KV cache
+  - 合入时间: 2023-10-11T02:59:02Z
+  - 解决问题: Wrapper support for prefill with KV cache
+- [#4](https://github.com/flashinfer-ai/flashinfer/pull/4) [Wrapper] Add the CSR indptr of append lengths to interface
+  - 合入时间: 2023-10-09T04:17:48Z
+  - 解决问题: This PR also unifies the decode wrapper with the (potential) prefill wrapper.
+
+## 2023-09（3）
+
+- [#3](https://github.com/flashinfer-ai/flashinfer/pull/3) bench batch decode
+  - 合入时间: 2023-09-18T05:16:00Z
+  - 解决问题: bench batch decode
+- [#2](https://github.com/flashinfer-ai/flashinfer/pull/2) Add tmp buffer and rotary mode to BatchDecode wrapper
+  - 合入时间: 2023-09-13T18:07:49Z
+  - 解决问题: Add tmp buffer and rotary mode to BatchDecode wrapper
+- [#1](https://github.com/flashinfer-ai/flashinfer/pull/1) [Wrapper] TVM wrapper for batch-decode kernel without RoPE
+  - 合入时间: 2023-09-11T04:19:18Z
+  - 解决问题: Will extend with RoPE later on.
+
