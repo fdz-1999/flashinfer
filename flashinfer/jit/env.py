@@ -20,8 +20,52 @@ limitations under the License.
 
 import os
 import pathlib
+import subprocess
 from ..compilation_context import CompilationContext
 from ..version import __version__ as flashinfer_version
+
+
+def check_jit_environment() -> dict:
+    """Check if JIT compilation environment is properly configured.
+
+    Returns:
+        A dictionary containing:
+        - tvm_ffi_ok: Whether tvm_ffi package is available
+        - nvcc_ok: Whether nvcc compiler is available
+        - issues: List of detected issues
+
+    Note:
+        This function checks the minimal requirements for JIT compilation.
+        For flashinfer >= 0.6.0, device_guard.h from apache-tvm-ffi >= 0.1.4
+        is required. For flashinfer <= 0.5.x, this header is not needed.
+    """
+    results = {
+        "tvm_ffi_ok": False,
+        "nvcc_ok": False,
+        "issues": [],
+    }
+
+    # Check tvm_ffi package
+    try:
+        import tvm_ffi
+
+        results["tvm_ffi_ok"] = True
+    except ImportError:
+        results["issues"].append("tvm_ffi package not installed")
+    except Exception as e:
+        results["issues"].append(f"Error checking tvm_ffi: {e}")
+
+    # Check nvcc compiler
+    try:
+        result = subprocess.run(
+            ["nvcc", "--version"], capture_output=True, text=True
+        )
+        results["nvcc_ok"] = result.returncode == 0
+    except FileNotFoundError:
+        results["nvcc_ok"] = False
+        results["issues"].append("nvcc not found in PATH")
+
+    return results
 
 
 def has_flashinfer_jit_cache() -> bool:
