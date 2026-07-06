@@ -48,8 +48,13 @@ def compute_block_extend_reference(
     dllm_block_size: int,
     q_offset: int = 0,
     sm_scale: float = None,
+    backend: str = "fa2",
 ) -> torch.Tensor:
-    """Reference implementation using custom_mask."""
+    """Reference implementation using custom_mask.
+
+    The FA3 backend now supports ``custom_mask`` too, so an FA3 reference can be
+    produced for cross-checking on SM90+ by passing ``backend="fa3"``.
+    """
     qo_len = q.shape[0]
     kv_len = k.shape[0]
     if sm_scale is None:
@@ -63,7 +68,7 @@ def compute_block_extend_reference(
     mask_2d = (q_block >= k_block).to(torch.uint8)
 
     return single_prefill_with_kv_cache(
-        q, k, v, custom_mask=mask_2d, sm_scale=sm_scale, backend="fa2"
+        q, k, v, custom_mask=mask_2d, sm_scale=sm_scale, backend=backend
     )
 
 
@@ -353,6 +358,91 @@ def test_dllm_precision_vs_custom_mask_fa2(
         print(f"\n  Overall: {status}")
 
     return {"overall_pass": overall_pass}
+
+
+def test_fa3_custom_mask_reference_vs_fa2(
+    verbose: bool = True,
+    test_dtypes: list = None,
+):
+    """Cross-check FA3 custom_mask reference against the FA2 custom_mask reference.
+
+    Now that FA3 single-prefill supports ``custom_mask``, this exercises the FA3
+    custom-mask path with several mask shapes (causal, block-extend, full) and
+    compares against the FA2 reference. Only runs on SM90+.
+    """
+    device = torch.device("cuda:0")
+    if "fa3" not in get_available_backends(device):
+        if verbose:
+            print("FA3 not available, skipping FA3 custom_mask reference test")
+        return {"overall_pass": True, "skipped": True}
+
+    if test_dtypes is None:
+        test_dtypes = [torch.float16, torch.bfloat16]
+
+    dtype_tolerances = {torch.float16: 1e-2, torch.bfloat16: 2e-2}
+    dtype_names = {torch.float16: "fp16", torch.bfloat16: "bf16"}
+
+    # (qo_len, kv_len, num_heads, num_kv_heads, head_dim) covering key shapes.
+    shape_configs = [
+        (64, 128, 32, 8, 128),
+        (64, 192, 32, 8, 128),
+        (128, 2048, 32, 8, 128),
+        (33, 97, 32, 4, 128),
+        (64, 128, 32, 8, 64),
+        (32, 32, 32, 1, 128),
+    ]
+    # Different mask patterns to exercise element-wise masking thoroughly.
+    dllm_block_sizes = [16, 32, 64]
+    q_offsets = [0, 64]
+
+    all_pass = True
+    for dtype in test_dtypes:
+        dtype_name = dtype_names[dtype]
+        tol = dtype_tolerances[dtype]
+        print(f"\n{'='*90}")
+        print(f"FA3 custom_mask reference vs FA2 [{dtype_name.upper()}]")
+        print(f"{'='*90}")
+
+        for cfg_idx, (qo_len, kv_len, num_heads, num_kv_heads, head_dim) in enumerate(
+            shape_configs
+        ):
+            q_offset = q_offsets[cfg_idx % len(q_offsets)]
+            for dllm_block_size in dllm_block_sizes:
+                sm_scale = 1.0 / math.sqrt(head_dim)
+                q = torch.randn(qo_len, num_heads, head_dim, dtype=dtype, device=device)
+                k = torch.randn(kv_len, num_kv_heads, head_dim, dtype=dtype, device=device)
+                v = torch.randn(kv_len, num_kv_heads, head_dim, dtype=dtype, device=device)
+
+                # Block-extend mask (the DLLM rule).
+                q_pos = torch.arange(qo_len, device=device) + q_offset
+                k_pos = torch.arange(kv_len, device=device)
+                mask_2d = (
+                    (q_pos.unsqueeze(1) // dllm_block_size)
+                    >= (k_pos.unsqueeze(0) // dllm_block_size)
+                ).to(torch.uint8)
+
+                ref_fa2 = single_prefill_with_kv_cache(
+                    q, k, v, custom_mask=mask_2d, sm_scale=sm_scale, backend="fa2"
+                )
+                ref_fa3 = single_prefill_with_kv_cache(
+                    q, k, v, custom_mask=mask_2d, sm_scale=sm_scale, backend="fa3"
+                )
+                max_diff = (ref_fa3 - ref_fa2).abs().max().item()
+                passed = max_diff < tol
+                all_pass = all_pass and passed
+
+                if verbose:
+                    status = "PASS" if passed else "FAIL"
+                    print(
+                        f"  [{cfg_idx}] B={dllm_block_size:3d} qo={qo_len:4d} kv={kv_len:4d} "
+                        f"off={q_offset:3d} h={num_heads}/{num_kv_heads} d={head_dim} "
+                        f"FA3-vs-FA2:{status}({max_diff:.6f})"
+                    )
+                torch.cuda.empty_cache()
+
+    assert all_pass, "FA3 custom_mask reference disagrees with FA2 reference"
+    print(f"\n  Overall: {'ALL PASS' if all_pass else 'SOME FAILED'}")
+    return {"overall_pass": all_pass}
 
 
 def test_heterogeneous_prefix_batch(
