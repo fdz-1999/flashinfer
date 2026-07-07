@@ -414,6 +414,12 @@ def is_fa3_backend_supported(
     -------
     bool
         True if the FA3 backend is supported, False otherwise.
+
+    NOTE: Custom (packed-bitmask) masks are now supported by the FA3 *single*
+    prefill path (single_prefill_with_kv_cache), but not yet by the FA3 *batch*
+    prefill path. This guard keeps the auto-dispatch on the FA2 backend for the
+    custom-mask case so batch prefill stays correct; callers that want the FA3
+    single-prefill custom-mask path should pass backend="fa3" explicitly.
     """
     if use_custom_mask:
         return False
