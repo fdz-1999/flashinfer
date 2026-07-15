@@ -81,8 +81,8 @@ def test_dllm_precision_vs_custom_mask_fa2(
         test_dtypes = [torch.float16, torch.bfloat16]
 
     dtype_tolerances = {
-        torch.float16: 1e-2,
-        torch.bfloat16: 2e-2,
+        torch.float16: 1e-3,
+        torch.bfloat16: 1e-2,
     }
     dtype_names = {
         torch.float16: "fp16",
@@ -367,7 +367,7 @@ def test_heterogeneous_prefix_batch(
 
     device = torch.device("cuda:0")
     dtype = torch.float16
-    tol = 1e-2
+    tol = 1e-3
 
     test_configs = [
         {"name": "Req0(has_prefix) + Req1(no_prefix)", "dllm_block_size": 32,
@@ -453,7 +453,7 @@ def test_cascade_current_chunk_batch(
 
     device = torch.device("cuda:0")
     dtype = torch.float16
-    tol = 1e-2
+    tol = 1e-3
 
     num_heads = 32
     num_kv_heads = 8
@@ -538,7 +538,7 @@ def test_cascade_precision_alignment(
     """Step-by-step incremental prefill precision alignment test."""
     device = torch.device("cuda:0")
     dtype = torch.float16
-    tol = 1e-2
+    tol = 1e-3
 
     test_configs = [
         {"dllm_block_size": 32, "num_steps": 4, "num_heads": 32, "num_kv_heads": 8, "head_dim": 128},
@@ -612,7 +612,7 @@ def test_sglang_vs_block_extend_cascade(
     available_backends = get_available_backends(device)
     cascade_backend = "fa3" if "fa3" in available_backends else "fa2"
     dtype = torch.float16
-    tol = 1e-2
+    tol = 1e-3
 
     dllm_block_size = 32
     num_heads = 32
