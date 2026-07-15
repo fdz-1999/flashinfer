@@ -48,6 +48,7 @@ def compute_block_extend_reference(
     dllm_block_size: int,
     q_offset: int = 0,
     sm_scale: float = None,
+    backend: str = "fa2",
 ) -> torch.Tensor:
     """Reference implementation using custom_mask."""
     qo_len = q.shape[0]
@@ -63,7 +64,7 @@ def compute_block_extend_reference(
     mask_2d = (q_block >= k_block).to(torch.uint8)
 
     return single_prefill_with_kv_cache(
-        q, k, v, custom_mask=mask_2d, sm_scale=sm_scale, backend="fa2"
+        q, k, v, custom_mask=mask_2d, sm_scale=sm_scale, backend=backend
     )
 
 
@@ -80,8 +81,8 @@ def test_dllm_precision_vs_custom_mask_fa2(
         test_dtypes = [torch.float16, torch.bfloat16]
 
     dtype_tolerances = {
-        torch.float16: 1e-2,
-        torch.bfloat16: 2e-2,
+        torch.float16: 1e-3,
+        torch.bfloat16: 1e-2,
     }
     dtype_names = {
         torch.float16: "fp16",
@@ -140,18 +141,18 @@ def test_dllm_precision_vs_custom_mask_fa2(
             k = torch.randn(kv_len, num_kv_heads, head_dim, dtype=dtype, device=device)
             v = torch.randn(kv_len, num_kv_heads, head_dim, dtype=dtype, device=device)
 
-            q_pos = torch.arange(qo_len, device=device) + q_offset
-            k_pos = torch.arange(kv_len, device=device)
-            mask_2d = ((q_pos.unsqueeze(1) // dllm_block_size) >= (k_pos.unsqueeze(0) // dllm_block_size)).to(torch.uint8)
-            ref_output = single_prefill_with_kv_cache(q, k, v, custom_mask=mask_2d, sm_scale=sm_scale, backend="fa2")
-
-            result = {"config_idx": cfg_idx, **cfg}
-
             qo_indptr = torch.tensor([0, qo_len], dtype=torch.int32, device=device)
             kv_indptr = torch.tensor([0, kv_len], dtype=torch.int32, device=device)
             q_offset_tensor = torch.tensor([q_offset], dtype=torch.int32, device=device)
 
+            result = {"config_idx": cfg_idx, **cfg}
+
             for backend in available_backends:
+                q_pos = torch.arange(qo_len, device=device) + q_offset
+                k_pos = torch.arange(kv_len, device=device)
+                mask_2d = ((q_pos.unsqueeze(1) // dllm_block_size) >= (k_pos.unsqueeze(0) // dllm_block_size)).to(torch.uint8)
+                ref_output = single_prefill_with_kv_cache(q, k, v, custom_mask=mask_2d, sm_scale=sm_scale, backend=backend)
+
                 workspace = torch.empty(128 * 1024 * 1024, dtype=torch.uint8, device=device)
                 wrapper = BatchBlockExtendRaggedOffsetWrapper(
                     workspace, kv_layout="NHD", dllm_block_size=dllm_block_size, backend=backend
@@ -169,10 +170,14 @@ def test_dllm_precision_vs_custom_mask_fa2(
                 del workspace, wrapper
 
             # V2 API
+            q_pos = torch.arange(qo_len, device=device) + q_offset
+            k_pos = torch.arange(kv_len, device=device)
+            mask_2d = ((q_pos.unsqueeze(1) // dllm_block_size) >= (k_pos.unsqueeze(0) // dllm_block_size)).to(torch.uint8)
+            v2_ref = single_prefill_with_kv_cache(q, k, v, custom_mask=mask_2d, sm_scale=sm_scale, backend="fa2")
             v2_output = block_extend_attention_with_offset(
                 q, k, v, dllm_block_size=dllm_block_size, q_offset=q_offset, sm_scale=sm_scale, backend="fa2"
             )
-            v2_diff = (v2_output - ref_output).abs().max().item()
+            v2_diff = (v2_output - v2_ref).abs().max().item()
             result["v2_max_diff"] = v2_diff
             result["v2_pass"] = v2_diff < tol
 
@@ -220,21 +225,20 @@ def test_dllm_precision_vs_custom_mask_fa2(
             kv_indptr = torch.tensor([i * kv_len for i in range(num_requests + 1)], dtype=torch.int32, device=device)
             q_offsets = torch.full((num_requests,), q_offset, dtype=torch.int32, device=device)
 
-            # Reference: per-request custom_mask
-            ref_outputs = []
-            for req_idx in range(num_requests):
-                q_req = q_batch[req_idx * qo_len:(req_idx + 1) * qo_len]
-                k_req = k_batch[req_idx * kv_len:(req_idx + 1) * kv_len]
-                v_req = v_batch[req_idx * kv_len:(req_idx + 1) * kv_len]
-                q_pos = torch.arange(qo_len, device=device) + q_offset
-                k_pos = torch.arange(kv_len, device=device)
-                mask_2d = ((q_pos.unsqueeze(1) // dllm_block_size) >= (k_pos.unsqueeze(0) // dllm_block_size)).to(torch.uint8)
-                ref_outputs.append(single_prefill_with_kv_cache(q_req, k_req, v_req, custom_mask=mask_2d, sm_scale=sm_scale, backend="fa2"))
-            ref_output = torch.cat(ref_outputs, dim=0)
-
             result = {"config_idx": cfg_idx, **cfg}
 
             for backend in available_backends:
+                # Reference: per-request custom_mask (same backend as BBE)
+                ref_outputs = []
+                for req_idx in range(num_requests):
+                    q_req = q_batch[req_idx * qo_len:(req_idx + 1) * qo_len]
+                    k_req = k_batch[req_idx * kv_len:(req_idx + 1) * kv_len]
+                    v_req = v_batch[req_idx * kv_len:(req_idx + 1) * kv_len]
+                    q_pos = torch.arange(qo_len, device=device) + q_offset
+                    k_pos = torch.arange(kv_len, device=device)
+                    mask_2d = ((q_pos.unsqueeze(1) // dllm_block_size) >= (k_pos.unsqueeze(0) // dllm_block_size)).to(torch.uint8)
+                    ref_outputs.append(single_prefill_with_kv_cache(q_req, k_req, v_req, custom_mask=mask_2d, sm_scale=sm_scale, backend=backend))
+                ref_output = torch.cat(ref_outputs, dim=0)
                 workspace = torch.empty(256 * 1024 * 1024, dtype=torch.uint8, device=device)
                 bbe_wrapper = BatchBlockExtendRaggedOffsetWrapper(
                     workspace, kv_layout="NHD", dllm_block_size=dllm_block_size, backend=backend
@@ -293,17 +297,16 @@ def test_dllm_precision_vs_custom_mask_fa2(
             k_continuous = kv_data[:, 0, :, :, :].reshape(-1, num_kv_heads, head_dim)[:kv_len]
             v_continuous = kv_data[:, 1, :, :, :].reshape(-1, num_kv_heads, head_dim)[:kv_len]
 
-            q_pos = torch.arange(qo_len, device=device) + q_offset
-            k_pos = torch.arange(kv_len, device=device)
-            mask_2d = ((q_pos.unsqueeze(1) // dllm_block_size) >= (k_pos.unsqueeze(0) // dllm_block_size)).to(torch.uint8)
-            ref_output = single_prefill_with_kv_cache(q, k_continuous, v_continuous, custom_mask=mask_2d, sm_scale=sm_scale, backend="fa2")
-
             result = {"config_idx": cfg_idx, **cfg}
 
             qo_indptr = torch.tensor([0, qo_len], dtype=torch.int32, device=device)
             q_offsets = torch.tensor([q_offset], dtype=torch.int32, device=device)
 
             for backend in available_backends:
+                q_pos = torch.arange(qo_len, device=device) + q_offset
+                k_pos = torch.arange(kv_len, device=device)
+                mask_2d = ((q_pos.unsqueeze(1) // dllm_block_size) >= (k_pos.unsqueeze(0) // dllm_block_size)).to(torch.uint8)
+                ref_output = single_prefill_with_kv_cache(q, k_continuous, v_continuous, custom_mask=mask_2d, sm_scale=sm_scale, backend=backend)
                 paged_wrapper = BatchBlockExtendPagedOffsetWrapper(
                     torch.empty(128 * 1024 * 1024, dtype=torch.uint8, device=device),
                     kv_layout="NHD", dllm_block_size=dllm_block_size, backend=backend
@@ -364,7 +367,7 @@ def test_heterogeneous_prefix_batch(
 
     device = torch.device("cuda:0")
     dtype = torch.float16
-    tol = 1e-2
+    tol = 1e-3
 
     test_configs = [
         {"name": "Req0(has_prefix) + Req1(no_prefix)", "dllm_block_size": 32,
@@ -404,7 +407,7 @@ def test_heterogeneous_prefix_batch(
             q_pos = torch.arange(req["qo_len"], device=device) + req["q_offset"]
             k_pos = torch.arange(req["kv_len"], device=device)
             mask_2d = ((q_pos.unsqueeze(1) // dllm_block_size) >= (k_pos.unsqueeze(0) // dllm_block_size)).to(torch.uint8)
-            ref_outputs.append(single_prefill_with_kv_cache(q, k, v, custom_mask=mask_2d, sm_scale=sm_scale, backend="fa2"))
+            ref_outputs.append(single_prefill_with_kv_cache(q, k, v, custom_mask=mask_2d, sm_scale=sm_scale, backend=backend))
 
             qo_indptr.append(qo_indptr[-1] + req["qo_len"])
             kv_indptr.append(kv_indptr[-1] + req["kv_len"])
@@ -450,7 +453,7 @@ def test_cascade_current_chunk_batch(
 
     device = torch.device("cuda:0")
     dtype = torch.float16
-    tol = 1e-2
+    tol = 1e-3
 
     num_heads = 32
     num_kv_heads = 8
@@ -492,7 +495,7 @@ def test_cascade_current_chunk_batch(
             q_pos = torch.arange(qo_len, device=device) + q_offset
             k_pos = torch.arange(kv_len, device=device)
             mask_2d = ((q_pos.unsqueeze(1) // dllm_block_size) >= (k_pos.unsqueeze(0) // dllm_block_size)).to(torch.uint8)
-            ref_outputs.append(single_prefill_with_kv_cache(q, k, v, custom_mask=mask_2d, sm_scale=sm_scale, backend="fa2"))
+            ref_outputs.append(single_prefill_with_kv_cache(q, k, v, custom_mask=mask_2d, sm_scale=sm_scale, backend=backend))
 
             qo_indptr.append(qo_indptr[-1] + qo_len)
             kv_indptr.append(kv_indptr[-1] + kv_len)
@@ -535,7 +538,7 @@ def test_cascade_precision_alignment(
     """Step-by-step incremental prefill precision alignment test."""
     device = torch.device("cuda:0")
     dtype = torch.float16
-    tol = 1e-2
+    tol = 1e-3
 
     test_configs = [
         {"dllm_block_size": 32, "num_steps": 4, "num_heads": 32, "num_kv_heads": 8, "head_dim": 128},
@@ -609,7 +612,7 @@ def test_sglang_vs_block_extend_cascade(
     available_backends = get_available_backends(device)
     cascade_backend = "fa3" if "fa3" in available_backends else "fa2"
     dtype = torch.float16
-    tol = 1e-2
+    tol = 1e-3
 
     dllm_block_size = 32
     num_heads = 32
@@ -631,7 +634,7 @@ def test_sglang_vs_block_extend_cascade(
         q_chunk = q_all[q_offset:q_offset + dllm_block_size]
         k_cumul = k_all[:kv_len]
         v_cumul = v_all[:kv_len]
-        ref_outputs.append(compute_block_extend_reference(q_chunk, k_cumul, v_cumul, dllm_block_size, q_offset=q_offset, sm_scale=sm_scale))
+        ref_outputs.append(compute_block_extend_reference(q_chunk, k_cumul, v_cumul, dllm_block_size, q_offset=q_offset, sm_scale=sm_scale, backend=cascade_backend))
 
     # SGLang Cascade: current + prefix + merge_state
     cascade_outputs = []
