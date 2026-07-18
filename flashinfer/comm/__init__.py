@@ -65,4 +65,20 @@ from .trtllm_moe_alltoall import (
     moe_a2a_wrap_payload_tensor_in_workspace as moe_a2a_wrap_payload_tensor_in_workspace,
 )
 
+# DCP A2A (Decode Context Parallel Attention Reduction)
+from .dcp_alltoall import decode_cp_a2a_alltoall as decode_cp_a2a_alltoall
+from .dcp_alltoall import (
+    decode_cp_a2a_allocate_mnnvl_workspace as decode_cp_a2a_allocate_mnnvl_workspace,
+)
+from .dcp_alltoall import decode_cp_a2a_init_workspace as decode_cp_a2a_init_workspace
+from .dcp_alltoall import decode_cp_a2a_workspace_size as decode_cp_a2a_workspace_size
+
 # from .mnnvl import MnnvlMemory, MnnvlMoe, MoEAlltoallInfo
+
+
+def __getattr__(name: str):
+    if name == "all_gather_matmul":
+        from .all_gather_matmul import all_gather_matmul
+
+        return all_gather_matmul
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

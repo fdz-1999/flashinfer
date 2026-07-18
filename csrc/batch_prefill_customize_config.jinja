@@ -76,6 +76,7 @@ struct RaggedParams {
   __host__ __device__ __forceinline__ uint32_t get_kv_len(uint32_t batch_idx) const {
     return kv_indptr[batch_idx + 1] - kv_indptr[batch_idx];
   }
+
 };
 
 struct PagedParams {
@@ -116,6 +117,7 @@ struct PagedParams {
   __host__ __device__ __forceinline__ uint32_t get_kv_len(uint32_t batch_idx) const {
     return paged_kv.get_length(batch_idx);
   }
+
 };
 
 {{ variant_decl }}

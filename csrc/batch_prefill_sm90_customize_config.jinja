@@ -66,6 +66,16 @@ struct RaggedParams {
   int window_left;
 
   bool causal;
+
+  // Block Expanding support
+  __host__ __device__ __forceinline__ uint32_t get_qo_len(uint32_t batch_idx) const {
+    return qo_lens[batch_idx];
+  }
+
+  __host__ __device__ __forceinline__ uint32_t get_kv_len(uint32_t batch_idx) const {
+    return kv_lens[batch_idx];
+  }
+
 };
 
 struct PagedParams {
@@ -117,6 +127,16 @@ struct PagedParams {
   int window_left;
 
   bool causal;
+
+  // Block Expanding support
+  __host__ __device__ __forceinline__ uint32_t get_qo_len(uint32_t batch_idx) const {
+    return qo_lens[batch_idx];
+  }
+
+  __host__ __device__ __forceinline__ uint32_t get_kv_len(uint32_t batch_idx) const {
+    return kv_lens[batch_idx];
+  }
+
 };
 
 {{ variant_decl }}

@@ -236,7 +236,9 @@ struct TmaWarpSpecializedGroupedGemmInput {
 
 constexpr bool isGatedActivation(ActivationType activation_type) {
   return activation_type == ActivationType::Swiglu || activation_type == ActivationType::Geglu ||
-         activation_type == ActivationType::SwigluBias;
+         activation_type == ActivationType::SwigluBias ||
+         activation_type == ActivationType::SwigluStep ||
+         activation_type == ActivationType::GegluTanh;
 }
 
 template <typename T,                          /*The type used for activations/scales/compute*/
@@ -314,6 +316,12 @@ class MoeGemmRunner {
   size_t getMaxWorkspaceSize(int num_experts) const;
 
   [[nodiscard]] int getSM() const;
+
+  // Query the occupancy (max active blocks per SM) for a given GEMM configuration.
+  // Returns 0 if the configuration is not supported on the current device.
+  // This is useful for pre-filtering tactics that would fail at execution time due to
+  // insufficient shared memory resources (e.g., SM89 tile configs run on SM120 Blackwell).
+  int queryOccupancyForConfig(cutlass_extensions::CutlassGemmConfig const& config);
 
  private:
   template <typename EpilogueTag>

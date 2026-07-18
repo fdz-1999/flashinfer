@@ -177,6 +177,7 @@ struct BatchPrefillRaggedParams {
   uint32_t token_pos_in_items_len;
   uint16_t* maybe_max_item_len_ptr;
 
+
   __host__ BatchPrefillRaggedParams()
       : q(nullptr),
         k(nullptr),
@@ -321,6 +322,7 @@ struct BatchPrefillPagedParams {
   uint16_t* maybe_token_pos_in_items_ptr;
   uint32_t token_pos_in_items_len;
   uint16_t* maybe_max_item_len_ptr;
+
 
   __host__ BatchPrefillPagedParams()
       : q(nullptr),

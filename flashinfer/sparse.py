@@ -20,6 +20,10 @@ from typing import Optional, Tuple, Union
 import torch
 
 from .api_logging import flashinfer_api
+from .trace.templates.attention import (
+    block_sparse_attention_run_trace,
+    variable_block_sparse_attention_run_trace,
+)
 from .decode import get_batch_decode_module
 from .prefill import _compute_page_mask_indptr, get_batch_prefill_module
 from .quantization import segment_packbits
@@ -418,7 +422,12 @@ class BlockSparseAttentionWrapper:
             )
 
             kv_lens_arr_host = (kv_indptr_host[1:] - kv_indptr_host[:-1]) * self.C
-            self._kv_lens_buffer[: len(kv_lens_arr_host)].copy_(
+            required_size = len(kv_lens_arr_host)
+            if required_size > self._kv_lens_buffer.shape[0]:
+                self._kv_lens_buffer = torch.empty(
+                    (required_size,), dtype=torch.int32, device=self.device
+                )
+            self._kv_lens_buffer[:required_size].copy_(
                 kv_lens_arr_host,
             )
 
@@ -481,7 +490,7 @@ class BlockSparseAttentionWrapper:
         self._rope_theta = rope_theta
         return self.run(q, k, v, scale_q, scale_k, scale_v)
 
-    @flashinfer_api
+    @flashinfer_api(trace=block_sparse_attention_run_trace)
     def run(
         self,
         q: torch.Tensor,
@@ -814,6 +823,12 @@ class VariableBlockSparseAttentionWrapper:
             The theta used in RoPE, if not provided, will be set to ``1e4``.
         non_blocking : bool
             Whether to copy the input tensors to the device asynchronously, defaults to ``True``.
+        q_data_type : Union[str, torch.dtype]
+            Dtype of the query tensor.  Used to specialize the JIT-compiled kernel.
+            Defaults to ``"float16"``.
+        kv_data_type : Optional[Union[str, torch.dtype]]
+            Dtype of the key/value tensors.  When ``None``, defaults to
+            ``q_data_type``.
 
 
         The :meth:`plan` method should be called before any :meth:`run` or
@@ -961,7 +976,12 @@ class VariableBlockSparseAttentionWrapper:
         self._cached_module = get_batch_prefill_module(self._backend, *get_module_args)
 
         kv_lens_arr_host = kv_indptr_host[1:] - kv_indptr_host[:-1]  # page_size == 1
-        self._kv_lens_buffer[: len(kv_lens_arr_host)].copy_(
+        required_size = len(kv_lens_arr_host)
+        if required_size > self._kv_lens_buffer.shape[0]:
+            self._kv_lens_buffer = torch.empty(
+                (required_size,), dtype=torch.int32, device=self.device
+            )
+        self._kv_lens_buffer[:required_size].copy_(
             kv_lens_arr_host,
         )
 
@@ -1021,7 +1041,7 @@ class VariableBlockSparseAttentionWrapper:
         self._rope_theta = rope_theta
         return self.run(q, k, v)
 
-    @flashinfer_api
+    @flashinfer_api(trace=variable_block_sparse_attention_run_trace)
     def run(
         self,
         q: torch.Tensor,

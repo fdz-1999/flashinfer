@@ -15,7 +15,7 @@ limitations under the License.
 """
 
 import os
-from typing import List
+from typing import List, Optional
 
 import jinja2
 import torch
@@ -28,16 +28,19 @@ from ..core import (
     sm90a_nvcc_flags,
     current_compilation_context,
 )
-from ...jit.cubin_loader import get_cubin, get_meta_hash
+from ...jit.cubin_loader import get_artifact, get_meta_hash
 from ..utils import (
     dtype_map,
+    dtype_map_kv,
     filename_safe_dtype_map,
     mask_mode_literal,
+    MaskMode,
     pos_encoding_mode_literal,
     write_if_different,
 )
 from .utils import generate_additional_params
 from .fmha_v2.generate_kernels import enumerate_kernels
+from .fmha_v2.fmha_library import generate_jit_sources
 
 
 def get_single_decode_uri(
@@ -140,7 +143,7 @@ def gen_batch_mla_module(
             generated_config_path,
             config_templ.render(
                 dtype_q=dtype_map[dtype_q],
-                dtype_kv=dtype_map[dtype_kv],
+                dtype_kv=dtype_map_kv[dtype_kv],
                 dtype_o=dtype_map[dtype_o],
                 dtype_idx=dtype_map[dtype_idx],
                 head_dim_ckv=head_dim_ckv,
@@ -168,7 +171,7 @@ def gen_batch_mla_module(
             generated_config_path,
             config_templ.render(
                 dtype_q=dtype_map[dtype_q],
-                dtype_kv=dtype_map[dtype_kv],
+                dtype_kv=dtype_map_kv[dtype_kv],
                 dtype_o=dtype_map[dtype_o],
                 dtype_idx=dtype_map[dtype_idx],
                 head_dim_ckv=head_dim_ckv,
@@ -277,7 +280,7 @@ def gen_batch_decode_mla_module(
         generated_config_path,
         config_templ.render(
             dtype_q=dtype_map[dtype_q],
-            dtype_kv=dtype_map[dtype_kv],
+            dtype_kv=dtype_map_kv[dtype_kv],
             dtype_o=dtype_map[dtype_o],
             dtype_idx=dtype_map[dtype_idx],
             head_dim_ckv=head_dim,
@@ -517,8 +520,13 @@ def gen_single_prefill_module(
 
     if backend == "fa2":
         assert not fp8_enabled, "fp8 tensor core is not supported in fa2 backend"
-        additional_tensor_names = ["maybe_custom_mask", "maybe_alibi_slopes"]
-        additional_tensor_dtypes = ["uint8_t", "float"]
+        additional_tensor_names = [
+            "maybe_custom_mask",
+            "maybe_alibi_slopes",
+            "maybe_k_cache_sf",
+            "maybe_v_cache_sf",
+        ]
+        additional_tensor_dtypes = ["uint8_t", "float", "uint8_t", "uint8_t"]
         additional_scalar_names = [
             "logits_soft_cap",
             "sm_scale",
@@ -754,7 +762,7 @@ def gen_customize_pod_module(
         "variant_name_p": variant_name_p,
         "variant_name_d": variant_name_d,
         "dtype_q": dtype_map[dtype_q],
-        "dtype_kv": dtype_map[dtype_kv],
+        "dtype_kv": dtype_map_kv[dtype_kv],
         "dtype_o": dtype_map[dtype_o],
         "idtype": dtype_map[dtype_idx],
         "head_dim_qk": head_dim,
@@ -854,7 +862,7 @@ def gen_customize_batch_pod_module(
         "variant_name_p": variant_name_p,
         "variant_name_d": variant_name_d,
         "dtype_q": dtype_map[dtype_q],
-        "dtype_kv": dtype_map[dtype_kv],
+        "dtype_kv": dtype_map_kv[dtype_kv],
         "dtype_o": dtype_map[dtype_o],
         "idtype": dtype_map[dtype_idx],
         "head_dim_qk": head_dim,
@@ -1000,6 +1008,8 @@ def gen_batch_prefill_module(
             "maybe_prefix_len_ptr",
             "maybe_token_pos_in_items_ptr",
             "maybe_max_item_len_ptr",
+            "maybe_k_cache_sf",
+            "maybe_v_cache_sf",
         ]
         additional_tensor_dtypes = [
             "uint8_t",
@@ -1008,6 +1018,8 @@ def gen_batch_prefill_module(
             "uint32_t",
             "uint16_t",
             "uint16_t",
+            "uint8_t",
+            "uint8_t",
         ]  # NOTE(Zihao): int32_t should follow dtype_idx
         additional_scalar_names = [
             "logits_soft_cap",
@@ -1148,8 +1160,8 @@ def gen_batch_attention_module(
         use_profiler,
     )
 
-    additional_tensor_names: List[str] = []
-    additional_tensor_dtypes: List[str] = []
+    additional_tensor_names: List[str] = ["maybe_k_cache_sf", "maybe_v_cache_sf"]
+    additional_tensor_dtypes: List[str] = ["uint8_t", "uint8_t"]
     additional_scalar_names: List[str] = []
     additional_scalar_dtypes: List[str] = []
     variant_name = f"StandardAttention<{str(use_logits_soft_cap).lower()}>"
@@ -1173,6 +1185,20 @@ def gen_batch_attention_module(
         use_logits_soft_cap=use_logits_soft_cap,
         use_profiler=use_profiler,
     )
+
+
+def _fa2_head_dim_nvcc_flags(head_dim_qk: int, head_dim_vo: int) -> Optional[List[str]]:
+    """head_dim > 256 is only supported on SM100+.
+
+    Restrict compilation of those modules to SM100/110/120 so pre-SM100
+    builds neither compile nor expose them; requesting such a module on an
+    older GPU raises "No supported CUDA architectures found".
+    """
+    if head_dim_qk > 256 or head_dim_vo > 256:
+        return current_compilation_context.get_nvcc_flags_list(
+            supported_major_versions=[10, 11, 12]
+        )
+    return None
 
 
 def gen_customize_single_decode_module(
@@ -1220,7 +1246,7 @@ def gen_customize_single_decode_module(
         "variant_decl": variant_decl,
         "variant_name": variant_name,
         "dtype_q": dtype_map[dtype_q],
-        "dtype_kv": dtype_map[dtype_kv],
+        "dtype_kv": dtype_map_kv[dtype_kv],
         "dtype_o": dtype_map[dtype_o],
         "head_dim_qk": head_dim_qk,
         "head_dim_vo": head_dim_vo,
@@ -1258,7 +1284,11 @@ def gen_customize_single_decode_module(
     generated_config_path = gen_directory / "single_decode_config.inc"
     write_if_different(generated_config_path, generated_inc_str)
 
-    return gen_jit_spec(uri, source_paths)
+    return gen_jit_spec(
+        uri,
+        source_paths,
+        extra_cuda_cflags=_fa2_head_dim_nvcc_flags(head_dim_qk, head_dim_vo),
+    )
 
 
 def gen_customize_single_prefill_module(
@@ -1281,11 +1311,46 @@ def gen_customize_single_prefill_module(
     use_fp16_qk_reduction: bool = False,
     fp8_enabled: bool = False,
 ) -> JitSpec:
+    """Public shared single-prefill gen. Compiles only the standard mask list
+    [0,1,2,3] — kBlockExpanding is NOT a value multiplied into this shared
+    product. The dLLM block-diffusion front-end is the dedicated
+    gen_customize_block_extend_single_prefill_module (standalone dispatch;
+    reviewers' §1)."""
+    return _gen_customize_single_prefill_module_impl(
+        backend, uri, dtype_q, dtype_kv, dtype_o, head_dim_qk, head_dim_vo,
+        additional_tensor_names, additional_tensor_dtypes, additional_scalar_names,
+        additional_scalar_dtypes, variant_name, variant_decl, pos_encoding_mode,
+        use_sliding_window, use_logits_soft_cap, use_fp16_qk_reduction, fp8_enabled,
+        [0, 1, 2, 3],
+    )
+
+
+def _gen_customize_single_prefill_module_impl(
+    backend: str,
+    uri: str,
+    dtype_q: torch.dtype,
+    dtype_kv: torch.dtype,
+    dtype_o: torch.dtype,
+    head_dim_qk: int,
+    head_dim_vo: int,
+    additional_tensor_names: List[str],
+    additional_tensor_dtypes: List[str],
+    additional_scalar_names: List[str],
+    additional_scalar_dtypes: List[str],
+    variant_name: str,
+    variant_decl: str,
+    pos_encoding_mode: int = 0,
+    use_sliding_window: bool = False,
+    use_logits_soft_cap: bool = False,
+    use_fp16_qk_reduction: bool = False,
+    fp8_enabled: bool = False,
+    mask_modes: Optional[List[int]] = None,
+) -> JitSpec:
     kwargs = {
         "variant_decl": variant_decl,
         "variant_name": variant_name,
         "dtype_q": dtype_map[dtype_q],
-        "dtype_kv": dtype_map[dtype_kv],
+        "dtype_kv": dtype_map_kv[dtype_kv],
         "dtype_o": dtype_map[dtype_o],
         "head_dim_qk": head_dim_qk,
         "head_dim_vo": head_dim_vo,
@@ -1321,6 +1386,7 @@ def gen_customize_single_prefill_module(
             "additional_func_params": additional_func_params,
             "additional_params_decl": additional_params_decl,
             "additional_params_setter": additional_params_setter,
+            "has_q_block_expanding_offset": "q_block_expanding_offset" in additional_scalar_names,
         }
 
         generated_inc_str = config_templ.render(
@@ -1329,7 +1395,8 @@ def gen_customize_single_prefill_module(
         os.makedirs(gen_directory, exist_ok=True)
 
         source_paths = []
-        for mask_mode in [0, 1, 2, 3]:
+        _mask_modes = mask_modes if mask_modes is not None else [0, 1, 2, 3]
+        for mask_mode in _mask_modes:
             filename = f"single_prefill_kernel_mask_{mask_mode}.cu"
             dest_path = gen_directory / filename
             source_paths.append(dest_path)
@@ -1353,7 +1420,11 @@ def gen_customize_single_prefill_module(
         generated_config_path = gen_directory / "single_prefill_config.inc"
         write_if_different(generated_config_path, generated_inc_str)
 
-        return gen_jit_spec(uri, source_paths)
+        return gen_jit_spec(
+            uri,
+            source_paths,
+            extra_cuda_cflags=_fa2_head_dim_nvcc_flags(head_dim_qk, head_dim_vo),
+        )
     elif backend == "fa3":
         gen_directory = jit_env.FLASHINFER_GEN_SRC_DIR / uri
 
@@ -1393,7 +1464,8 @@ def gen_customize_single_prefill_module(
         os.makedirs(gen_directory, exist_ok=True)
 
         source_paths = []
-        for mask_mode in [0, 1, 2, 3]:
+        _mask_modes = mask_modes if mask_modes is not None else [0, 1, 2, 3]
+        for mask_mode in _mask_modes:
             filename = f"single_prefill_sm90_kernel_mask_{mask_mode}.cu"
             dest_path = gen_directory / filename
             source_paths.append(dest_path)
@@ -1423,6 +1495,114 @@ def gen_customize_single_prefill_module(
         )
     else:
         raise ValueError(f"Invalid backend: {backend}")
+
+
+# -----------------------------------------------------------------------------
+# dLLM block-diffusion ("block-expanding") dedicated front-ends.
+#
+# These are thin, deliberately-narrow wrappers over the shared
+# ``gen_customize_single/batch_prefill_module`` that compile ONLY
+# ``MaskMode::kBlockExpanding`` over the small closed product dLLM actually needs
+# (fp16/bf16 x head_dim 64/128 x ragged+paged x fa2/fa3). They are the standalone
+# entry points the reviewers asked for ("move the dispatch into a standalone
+# config/variant class") so the new mask mode is NOT a value multiplied into the
+# big shared prefill cartesian product. The shared ``gen_customize_*`` keeps its
+# default mask list ``[0,1,2,3]`` — no existing prefill URI compiles mode 4.
+# See docs/block-extend-design-response.md §1.
+# -----------------------------------------------------------------------------
+
+_BLOCK_EXTEND_SUPPORTED_DTYPES = {torch.float16, torch.bfloat16}
+_BLOCK_EXTEND_SUPPORTED_HEAD_DIMS = {64, 128}
+
+
+def _check_block_extend_axes(dtype_q: torch.dtype, head_dim_qk: int, head_dim_vo: int) -> None:
+    if dtype_q not in _BLOCK_EXTEND_SUPPORTED_DTYPES:
+        raise ValueError(
+            f"Block-extend (dLLM) only supports {_BLOCK_EXTEND_SUPPORTED_DTYPES}, got {dtype_q}."
+        )
+    if head_dim_qk not in _BLOCK_EXTEND_SUPPORTED_HEAD_DIMS or head_dim_vo not in _BLOCK_EXTEND_SUPPORTED_HEAD_DIMS:
+        raise ValueError(
+            f"Block-extend (dLLM) only supports head_dim in "
+            f"{sorted(_BLOCK_EXTEND_SUPPORTED_HEAD_DIMS)}, got "
+            f"head_dim_qk={head_dim_qk}, head_dim_vo={head_dim_vo}."
+        )
+
+
+def gen_customize_block_extend_single_prefill_module(
+    backend: str,
+    uri: str,
+    dtype_q: torch.dtype,
+    dtype_kv: torch.dtype,
+    dtype_o: torch.dtype,
+    head_dim_qk: int,
+    head_dim_vo: int,
+    additional_tensor_names: List[str],
+    additional_tensor_dtypes: List[str],
+    additional_scalar_names: List[str],
+    additional_scalar_dtypes: List[str],
+    variant_name: str,
+    variant_decl: str,
+    pos_encoding_mode: int = 0,
+    use_sliding_window: bool = False,
+    use_logits_soft_cap: bool = False,
+    use_fp16_qk_reduction: bool = False,
+    fp8_enabled: bool = False,
+) -> "JitSpec":
+    """Dedicated single-prefill front-end for dLLM block-diffusion attention.
+
+    Compiles only ``MaskMode::kBlockExpanding`` over the closed dLLM product.
+    Behaviorally delegates to :func:`gen_customize_single_prefill_module` with
+    ``mask_modes`` fixed to ``[kBlockExpanding]`` and the closed product enforced
+    up front — a separate small entry point, not a value multiplied into the big
+    shared prefill cartesian product.
+    """
+    _check_block_extend_axes(dtype_q, head_dim_qk, head_dim_vo)
+    return _gen_customize_single_prefill_module_impl(
+        backend, uri, dtype_q, dtype_kv, dtype_o, head_dim_qk, head_dim_vo,
+        additional_tensor_names, additional_tensor_dtypes,
+        additional_scalar_names, additional_scalar_dtypes,
+        variant_name, variant_decl, pos_encoding_mode,
+        use_sliding_window, use_logits_soft_cap, use_fp16_qk_reduction, fp8_enabled,
+        [MaskMode.kBlockExpanding.value],
+    )
+
+
+def gen_customize_block_extend_batch_prefill_module(
+    backend: str,
+    uri: str,
+    dtype_q: torch.dtype,
+    dtype_kv: torch.dtype,
+    dtype_o: torch.dtype,
+    idtype: torch.dtype,
+    head_dim_qk: int,
+    head_dim_vo: int,
+    additional_tensor_names: List[str],
+    additional_tensor_dtypes: List[str],
+    additional_scalar_names: List[str],
+    additional_scalar_dtypes: List[str],
+    variant_name: str,
+    variant_decl: str,
+    pos_encoding_mode: int = 0,
+    use_sliding_window: bool = False,
+    use_logits_soft_cap: bool = False,
+    use_fp16_qk_reduction: bool = False,
+    fp8_enabled: bool = False,
+) -> "JitSpec":
+    """Dedicated batch-prefill front-end for dLLM block-diffusion attention.
+
+    Compiles only ``MaskMode::kBlockExpanding`` over the closed dLLM product.
+    Behaviorally delegates to :func:`gen_customize_batch_prefill_module` with
+    ``mask_modes`` fixed to ``[kBlockExpanding]`` and the closed product enforced.
+    """
+    _check_block_extend_axes(dtype_q, head_dim_qk, head_dim_vo)
+    return _gen_customize_batch_prefill_module_impl(
+        backend, uri, dtype_q, dtype_kv, dtype_o, idtype, head_dim_qk, head_dim_vo,
+        additional_tensor_names, additional_tensor_dtypes,
+        additional_scalar_names, additional_scalar_dtypes,
+        variant_name, variant_decl, pos_encoding_mode,
+        use_sliding_window, use_logits_soft_cap, use_fp16_qk_reduction, fp8_enabled,
+        [MaskMode.kBlockExpanding.value],
+    )
 
 
 def gen_customize_batch_decode_module(
@@ -1460,7 +1640,7 @@ def gen_customize_batch_decode_module(
         "variant_decl": variant_decl,
         "variant_name": variant_name,
         "dtype_q": dtype_map[dtype_q],
-        "dtype_kv": dtype_map[dtype_kv],
+        "dtype_kv": dtype_map_kv[dtype_kv],
         "dtype_o": dtype_map[dtype_o],
         "idtype": dtype_map[idtype],
         "head_dim_qk": head_dim_qk,
@@ -1502,7 +1682,11 @@ def gen_customize_batch_decode_module(
 
     generated_config_path = gen_directory / "batch_decode_config.inc"
     write_if_different(generated_config_path, generated_inc_str)
-    return gen_jit_spec(uri, source_paths)
+    return gen_jit_spec(
+        uri,
+        source_paths,
+        extra_cuda_cflags=_fa2_head_dim_nvcc_flags(head_dim_qk, head_dim_vo),
+    )
 
 
 def gen_customize_batch_prefill_module(
@@ -1526,11 +1710,47 @@ def gen_customize_batch_prefill_module(
     use_fp16_qk_reduction: bool = False,
     fp8_enabled: bool = False,
 ) -> JitSpec:
+    """Public shared batch-prefill gen. Compiles only the standard mask list
+    [0,1,2,3] — kBlockExpanding is NOT a value multiplied into this shared
+    product. The dLLM block-diffusion front-end is the dedicated
+    gen_customize_block_extend_batch_prefill_module (standalone dispatch;
+    reviewers' §1)."""
+    return _gen_customize_batch_prefill_module_impl(
+        backend, uri, dtype_q, dtype_kv, dtype_o, idtype, head_dim_qk, head_dim_vo,
+        additional_tensor_names, additional_tensor_dtypes, additional_scalar_names,
+        additional_scalar_dtypes, variant_name, variant_decl, pos_encoding_mode,
+        use_sliding_window, use_logits_soft_cap, use_fp16_qk_reduction, fp8_enabled,
+        [0, 1, 2, 3],
+    )
+
+
+def _gen_customize_batch_prefill_module_impl(
+    backend: str,
+    uri: str,
+    dtype_q: torch.dtype,
+    dtype_kv: torch.dtype,
+    dtype_o: torch.dtype,
+    idtype: torch.dtype,
+    head_dim_qk: int,
+    head_dim_vo: int,
+    additional_tensor_names: List[str],
+    additional_tensor_dtypes: List[str],
+    additional_scalar_names: List[str],
+    additional_scalar_dtypes: List[str],
+    variant_name: str,
+    variant_decl: str,
+    pos_encoding_mode: int = 0,
+    use_sliding_window: bool = False,
+    use_logits_soft_cap: bool = False,
+    use_fp16_qk_reduction: bool = False,
+    fp8_enabled: bool = False,
+    mask_modes: Optional[List[int]] = None,
+) -> JitSpec:
     kwargs = {
         "variant_decl": variant_decl,
         "variant_name": variant_name,
         "dtype_q": dtype_map[dtype_q],
-        "dtype_kv": dtype_map[dtype_kv],
+        "dtype_kv": dtype_map_kv[dtype_kv],
         "dtype_o": dtype_map[dtype_o],
         "idtype": dtype_map[idtype],
         "head_dim_qk": head_dim_qk,
@@ -1580,7 +1800,8 @@ def gen_customize_batch_prefill_module(
         os.makedirs(gen_directory, exist_ok=True)
 
         source_paths = []
-        for mask_mode in [0, 1, 2, 3]:
+        _mask_modes = mask_modes if mask_modes is not None else [0, 1, 2, 3]
+        for mask_mode in _mask_modes:
             dest_path = (
                 gen_directory / f"batch_prefill_paged_kernel_mask_{mask_mode}.cu"
             )
@@ -1614,7 +1835,11 @@ def gen_customize_batch_prefill_module(
 
         generated_config_path = gen_directory / "batch_prefill_config.inc"
         write_if_different(generated_config_path, generated_inc_str)
-        return gen_jit_spec(uri, source_paths)
+        return gen_jit_spec(
+            uri,
+            source_paths,
+            extra_cuda_cflags=_fa2_head_dim_nvcc_flags(head_dim_qk, head_dim_vo),
+        )
     elif backend == "fa3":
         gen_directory = jit_env.FLASHINFER_GEN_SRC_DIR / uri
         (additional_params_decl, additional_func_params, additional_params_setter) = (
@@ -1654,7 +1879,8 @@ def gen_customize_batch_prefill_module(
         generated_inc_str = config_templ.render(**kwargs)
 
         source_paths = []
-        for mask_mode in [0, 1, 2, 3]:
+        _mask_modes = mask_modes if mask_modes is not None else [0, 1, 2, 3]
+        for mask_mode in _mask_modes:
             filename = f"batch_prefill_paged_sm90_kernel_mask_{mask_mode}.cu"
             dest_path = gen_directory / filename
             source_paths.append(dest_path)
@@ -1751,7 +1977,7 @@ def gen_fmha_cutlass_sm100a_module(
     ]
 
     nvcc_flags = current_compilation_context.get_nvcc_flags_list(
-        supported_major_versions=[10, 11, 12]
+        supported_major_versions=[10, 11]
     )
     return gen_jit_spec(
         uri,
@@ -1768,12 +1994,12 @@ def gen_trtllm_gen_fmha_module():
 
     # Check if checksums.txt exists in the cubin directory
     checksum_path = f"{ArtifactPath.TRTLLM_GEN_FMHA}/checksums.txt"
-    checksum = get_cubin(checksum_path, CheckSumHash.TRTLLM_GEN_FMHA)
+    checksum = get_artifact(checksum_path, CheckSumHash.TRTLLM_GEN_FMHA)
     assert checksum, f"Failed to get checksums.txt from {checksum_path}"
 
     meta_hash = get_meta_hash(checksum)
-    # use `get_cubin` to get "flashinferMetaInfo.h"
-    metainfo = get_cubin(
+    # use `get_artifact` to get "flashinferMetaInfo.h"
+    metainfo = get_artifact(
         f"{include_path}/{header_name}.h",
         meta_hash,
     )
@@ -1818,7 +2044,7 @@ def gen_customize_batch_attention_module(
         "variant_decl": variant_decl,
         "variant_name": variant_name,
         "dtype_q": dtype_map[dtype_q],
-        "dtype_kv": dtype_map[dtype_kv],
+        "dtype_kv": dtype_map_kv[dtype_kv],
         "dtype_o": dtype_map[dtype_o],
         "idtype": dtype_map[idtype],
         "head_dim_qk": head_dim_qk,
@@ -1827,13 +2053,26 @@ def gen_customize_batch_attention_module(
         "use_logits_soft_cap": str(use_logits_soft_cap).lower(),
     }
     gen_directory = jit_env.FLASHINFER_GEN_SRC_DIR / uri
-    (additional_params_decl, additional_func_params, additional_params_setter) = (
-        generate_additional_params(
-            additional_tensor_names,
-            additional_tensor_dtypes,
-            additional_scalar_names,
-            additional_scalar_dtypes,
-        )
+    (additional_params_decl, additional_func_params, _) = generate_additional_params(
+        additional_tensor_names,
+        additional_tensor_dtypes,
+        additional_scalar_names,
+        additional_scalar_dtypes,
+    )
+    # batch_attention.cu loops over params[i], so generate a setter using params[i] syntax
+    # instead of the params.X syntax from generate_additional_params.
+    batch_additional_params_setter = " \\\n".join(
+        [
+            (
+                f"params[i].{var} = {var} ? static_cast<{dtype}*>({var}.value().data_ptr()): nullptr;"
+                if var.startswith("maybe")
+                else f"params[i].{var} = static_cast<{dtype}*>({var}.data_ptr());"
+            )
+            for dtype, var in zip(
+                additional_tensor_dtypes, additional_tensor_names, strict=True
+            )
+        ]
+        + [f"params[i].{var} = {var};" for var in additional_scalar_names]
     )
     with open(
         jit_env.FLASHINFER_CSRC_DIR / "batch_attention_customize_config.jinja"
@@ -1848,7 +2087,7 @@ def gen_customize_batch_attention_module(
     kwargs |= {
         "additional_params_decl": additional_params_decl,
         "additional_func_params": additional_func_params,
-        "additional_params_setter": additional_params_setter,
+        "additional_params_setter": batch_additional_params_setter,
     }
 
     generated_inc_str = config_templ.render(
@@ -1899,12 +2138,7 @@ def gen_cudnn_fmha_module():
     )
 
 
-def get_trtllm_fmha_v2_module():
-    module = gen_trtllm_fmha_v2_module().build_and_load()
-    return module
-
-
-def gen_trtllm_fmha_v2_module() -> JitSpec:
+def gen_trtllm_fmha_v2_sm120_module() -> JitSpec:
     uri = "trtllm_fmha_v2"
     cached_ops = jit_env.FLASHINFER_JIT_DIR / uri
     cached_ops.mkdir(parents=True, exist_ok=True)
@@ -1932,6 +2166,74 @@ def gen_trtllm_fmha_v2_module() -> JitSpec:
     )
     nvcc_flags.append(f"-I{jit_env.FLASHINFER_CSRC_DIR / 'fmha_v2'}")
     nvcc_flags.append("-Wno-deprecated-gpu-targets")
+
+    return gen_jit_spec(
+        uri,
+        source_paths,
+        extra_cuda_cflags=nvcc_flags,
+    )
+
+
+def gen_fmha_v2_module(
+    input_layout: str, input_dtype: torch.dtype, output_dtype: torch.dtype = None
+) -> JitSpec:
+    # Setup generated source directory
+    if output_dtype is None:
+        output_dtype = input_dtype
+
+    dtype_map = {
+        torch.float16: "fp16",
+        torch.bfloat16: "bf16",
+        torch.float8_e4m3fn: "e4m3",
+    }
+    input_dtype_str = dtype_map[input_dtype]
+    output_dtype_str = dtype_map[output_dtype] if output_dtype is not None else None
+
+    uri = f"trtllm_fmha_v2_{input_layout.lower()}_{input_dtype_str}_{output_dtype_str}"
+
+    gen_directory = jit_env.FLASHINFER_GEN_SRC_DIR / uri
+    gen_directory.mkdir(parents=True, exist_ok=True)
+
+    # Source directories
+    csrc_dir = jit_env.FLASHINFER_CSRC_DIR
+    fmha_v2_src_dir = csrc_dir / "fmha_v2"
+    # Determine which SM major versions are available in the compilation context
+    # so we only generate kernel sources for architectures that will be compiled.
+    source_paths = generate_jit_sources(
+        uri,
+        input_layout,
+        input_dtype_str,
+        output_dtype_str,
+        compilation_context=current_compilation_context,
+    )
+
+    # copy static fmha_v2_run.cu
+    static_run_path = csrc_dir / "fmha_v2_run.cu"
+    run_path = gen_directory / "fmha_v2_run.cu"
+    with open(static_run_path, "r") as f:
+        write_if_different(run_path, f.read())
+    source_paths.append(run_path)
+
+    # copy static fmha_v2_jit_binding.cu
+    static_binding_path = csrc_dir / "fmha_v2_jit_binding.cu"
+    binding_path = gen_directory / "fmha_v2_jit_binding.cu"
+    with open(static_binding_path, "r") as f:
+        write_if_different(binding_path, f.read())
+    source_paths.append(binding_path)
+
+    # Setup compilation flags
+    nvcc_flags = current_compilation_context.get_nvcc_flags_list(
+        supported_major_versions=[9, 12]
+    )
+    nvcc_flags.extend(
+        [
+            f"-I{fmha_v2_src_dir}",
+            f"-I{gen_directory}",  # For fmha_v2_api.h
+            f"-I{jit_env.FLASHINFER_CSRC_DIR / 'fmha_v2'}",
+            f"-I{jit_env.FLASHINFER_INCLUDE_DIR}",  # For flashinfer headers
+            "-Wno-deprecated-gpu-targets",
+        ]
+    )
 
     return gen_jit_spec(
         uri,

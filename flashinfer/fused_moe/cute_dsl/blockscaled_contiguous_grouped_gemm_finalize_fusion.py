@@ -48,7 +48,6 @@ import cuda.bindings.driver as cuda
 import torch
 
 from flashinfer.utils import get_compute_capability
-from flashinfer.api_logging import flashinfer_api
 from flashinfer.cute_dsl.utils import (
     get_cutlass_dtype,
     cutlass_to_torch_dtype,
@@ -188,6 +187,7 @@ def _get_compiled_finalize_kernel(
     mma_tiler_mn: Tuple[int, int],
     cluster_shape_mn: Tuple[int, int],
     raster_along_m: bool,
+    enable_pdl: bool = True,
 ):
     """Get or compile the grouped GEMM with finalize fusion kernel.
 
@@ -201,7 +201,14 @@ def _get_compiled_finalize_kernel(
     global _finalize_kernel_cache
 
     # Cache key only includes tactic parameters, NOT problem dimensions
-    cache_key = (sf_vec_size, tile_size, mma_tiler_mn, cluster_shape_mn, raster_along_m)
+    cache_key = (
+        sf_vec_size,
+        tile_size,
+        mma_tiler_mn,
+        cluster_shape_mn,
+        raster_along_m,
+        enable_pdl,
+    )
 
     if cache_key not in _finalize_kernel_cache:
         # Create kernel instance
@@ -209,8 +216,8 @@ def _get_compiled_finalize_kernel(
             sf_vec_size=sf_vec_size,
             mma_tiler_mn=mma_tiler_mn,
             cluster_shape_mn=cluster_shape_mn,
-            use_blkred=True,
             raster_along_m=raster_along_m,
+            enable_pdl=enable_pdl,
         )
 
         # Compile with runtime parameters - they can vary across calls
@@ -250,7 +257,6 @@ def _get_compiled_finalize_kernel(
     return _finalize_kernel_cache[cache_key]
 
 
-@flashinfer_api
 def blockscaled_contiguous_grouped_gemm_finalize_fusion_nvfp4(
     a: torch.Tensor,
     b: torch.Tensor,
@@ -272,6 +278,7 @@ def blockscaled_contiguous_grouped_gemm_finalize_fusion_nvfp4(
     cluster_shape_mn: Tuple[int, int] = (2, 1),
     raster_along_m: bool = False,
     sm_count: Optional[int] = None,
+    enable_pdl: bool = True,
 ) -> torch.Tensor:
     """Blockscaled Contiguous Grouped GEMM with Finalize Fusion for MoE workloads.
 
@@ -298,7 +305,11 @@ def blockscaled_contiguous_grouped_gemm_finalize_fusion_nvfp4(
             expanded_idx = token_idx * topk + topk_idx. Invalid rows have -1.
         token_final_scales: Router scaling factors, shape (seq_len, topk), float32/bf16/fp16
         out: Optional output tensor, shape (seq_len, n). Created if None.
-             This tensor is used for atomic accumulation, so it should be zero-initialized.
+             This tensor is used for atomic accumulation. If `out` is
+             provided, it must already be zero-initialized by the caller.
+             If `out` is None, this function allocates a zero-initialized
+             output tensor. Passing a non-zeroed `out` buffer will silently
+             produce incorrect results.
         ab_dtype: Data type for A and B matrices. Default: "float4_e2m1fn"
         sf_dtype: Data type for scale factors. Default: "float8_e4m3fn"
         out_dtype: Data type for output matrix. Default: "bfloat16"
@@ -314,6 +325,11 @@ def blockscaled_contiguous_grouped_gemm_finalize_fusion_nvfp4(
 
     Notes:
         - The output tensor is modified in-place using atomic adds for scatter-reduction.
+        - When out is provided it is NOT zeroed internally; the caller
+          must ensure the buffer is zeroed before each invocation.
+          In the main CuteDSL MoE path, _moe_core_impl handles this by
+          zeroing the active output slice before GEMM2, typically on an
+          auxiliary stream overlapped with GEMM1.
         - Call create_finalize_fusion_tensors() to create permuted_idx_to_expanded_idx and token_final_scales.
         - Requires SM100 (Blackwell) GPU architecture
         - The finalize fusion eliminates the need for a separate moe_unpermute kernel
@@ -368,7 +384,7 @@ def blockscaled_contiguous_grouped_gemm_finalize_fusion_nvfp4(
     major, minor = get_compute_capability(a.device)
     if major != 10:
         raise ValueError(
-            f"Blockscaled contiguous grouped GEMM with finalize fusion requires SM100 family (Blackwell: SM100, SM103, SM110). "
+            f"Blockscaled contiguous grouped GEMM with finalize fusion requires SM100 family (Blackwell: SM100, SM103). "
             f"Got SM{major}{minor}."
         )
 
@@ -376,12 +392,20 @@ def blockscaled_contiguous_grouped_gemm_finalize_fusion_nvfp4(
     ab_dtype_cutlass = get_cutlass_dtype(ab_dtype)
     sf_dtype_cutlass = get_cutlass_dtype(sf_dtype)
     out_dtype_cutlass = get_cutlass_dtype(out_dtype)
+    # Token final scales - determine dtype
+    if token_final_scales.dtype == torch.float32:
+        token_scales_dtype = cutlass.Float32
+    elif token_final_scales.dtype == torch.bfloat16:
+        token_scales_dtype = cutlass.BFloat16
+    else:
+        token_scales_dtype = cutlass.Float16
 
     if not Sm100BlockScaledContiguousGroupedGemmFinalizeFusionKernel.can_implement(
         ab_dtype_cutlass,
         sf_dtype_cutlass,
         sf_vec_size,
         out_dtype_cutlass,
+        token_scales_dtype,
         mma_tiler_mn,
         cluster_shape_mn,
         permuted_m,
@@ -394,20 +418,22 @@ def blockscaled_contiguous_grouped_gemm_finalize_fusion_nvfp4(
     ):
         raise ValueError(
             f"Unsupported configuration: ab_dtype={ab_dtype}, sf_dtype={sf_dtype}, "
-            f"sf_vec_size={sf_vec_size}, out_dtype={out_dtype}, mma_tiler_mn={mma_tiler_mn}, "
-            f"cluster_shape_mn={cluster_shape_mn}, shape=({permuted_m}, {n}, {k}, {num_experts})"
+            f"sf_vec_size={sf_vec_size}, out_dtype={out_dtype}, "
+            f"final_scale_dtype={token_final_scales.dtype}, "
+            f"mma_tiler_mn={mma_tiler_mn}, cluster_shape_mn={cluster_shape_mn}, shape=({permuted_m}, {n}, {k}, {num_experts})"
         )
 
-    # Create output tensor if not provided (zero-initialized for atomic adds)
+    # Create output tensor if not provided (zero-initialized for atomic adds).
+    # If out is provided, the caller is responsible for zeroing it before
+    # this call. The GEMM2 epilogue uses atomic scatter-add
+    # (out[token_idx] += ...), so any non-zero residual would corrupt
+    # results.
     if out is None:
         out = torch.zeros(
             (seq_len, n),
             dtype=cutlass_to_torch_dtype(out_dtype_cutlass),
             device=a.device,
         )
-    else:
-        # Ensure output is zero for proper accumulation
-        out.zero_()
 
     # Get SM count
     if sm_count is None:
@@ -452,13 +478,7 @@ def blockscaled_contiguous_grouped_gemm_finalize_fusion_nvfp4(
         cutlass.Int32, permuted_idx_to_expanded_idx.data_ptr(), cute.AddressSpace.gmem
     )
 
-    # Token final scales - determine dtype and create pointer
-    if token_final_scales.dtype == torch.float32:
-        token_scales_dtype = cutlass.Float32
-    elif token_final_scales.dtype == torch.bfloat16:
-        token_scales_dtype = cutlass.BFloat16
-    else:
-        token_scales_dtype = cutlass.Float16
+    # Token final scales - create pointer
     token_scales_ptr = make_ptr(
         token_scales_dtype,
         token_final_scales.data_ptr(),
@@ -499,6 +519,7 @@ def blockscaled_contiguous_grouped_gemm_finalize_fusion_nvfp4(
         mma_tiler_mn=mma_tiler_mn,
         cluster_shape_mn=cluster_shape_mn,
         raster_along_m=raster_along_m,
+        enable_pdl=enable_pdl,
     )
 
     # Execute kernel with runtime parameters
