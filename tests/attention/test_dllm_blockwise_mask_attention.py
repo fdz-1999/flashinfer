@@ -41,7 +41,7 @@ def get_available_backends(device=None):
         return ["fa2"]
 
 
-def test_block_diffusion_batch_generator_routing(monkeypatch):
+def test_block_extend_batch_generator_routing(monkeypatch):
     """The cache decorator tuple-normalizes list arguments before dispatch."""
     import flashinfer.prefill as prefill_module
     from flashinfer.utils import MaskMode
@@ -54,7 +54,7 @@ def test_block_diffusion_batch_generator_routing(monkeypatch):
         return DummySpec()
 
     def shared_generator(*args, **kwargs):
-        raise AssertionError("block-expanding mask must use the dedicated generator")
+        raise AssertionError("block-extend mask must use the dedicated generator")
 
     monkeypatch.setattr(
         prefill_module,
@@ -67,7 +67,7 @@ def test_block_diffusion_batch_generator_routing(monkeypatch):
 
     module = prefill_module.get_customize_batch_prefill_module(
         backend="fa2",
-        uri="test_block_diffusion_batch_generator_routing",
+        uri="test_block_extend_batch_generator_routing",
         dtype_q=torch.float16,
         dtype_kv=torch.float16,
         dtype_o=torch.float16,
@@ -80,7 +80,7 @@ def test_block_diffusion_batch_generator_routing(monkeypatch):
         additional_scalar_dtypes=[],
         variant_name="TestBlockExtendAttention",
         variant_decl="",
-        mask_modes=[MaskMode.BLOCK_EXPANDING.value],
+        mask_modes=[MaskMode.BLOCK_EXTEND.value],
     )
 
     assert module == "block-extend-module"
@@ -686,7 +686,7 @@ def test_zero_visible_kv_no_hang(
 ):
     """Regression test for the zero-visible-KV TMA-hang on the Hopper (FA3) mainloop.
 
-    The block-expanding mask can make an entire CTA's first tile have zero visible
+    The block-extend mask can make an entire CTA's first tile have zero visible
     KV (``kv_valid_end <= 0``) when ``kv_offset`` places all KV above Q's block — the
     cascade "current chunk" shape where the prefix occupies the low KV range. On FA3
     the consumer then takes the ``store_zero`` fast-path and skips the ``barrier_O``
@@ -828,10 +828,10 @@ def test_zero_visible_kv_no_hang(
     assert all_pass, "zero-visible-KV regression failed (see diffs above; a hang here on FA3 is the bug)"
 
 
-def test_block_diffusion_named_option(
+def test_block_extend_named_option(
     verbose: bool = True,
 ):
-    """Exercise the reviewers' preferred shape: a ``block_diffusion=`` mask option
+    """Exercise the reviewers' preferred shape: a ``block_extend=`` mask option
     on the existing ``BatchPrefillWith{Ragged,Paged}KVCacheWrapper`` (rather than
     the dedicated ``flashinfer.dllm`` API family). Cross-checks that the named
     option matches both the FA2 reference and the dedicated ``BatchBlockExtend*``
@@ -862,12 +862,12 @@ def test_block_diffusion_named_option(
 
     results = {}
 
-    # --- Ragged: existing wrapper with block_diffusion=True ---
+    # --- Ragged: existing wrapper with block_extend=True ---
     for backend in available_backends:
         ws = torch.empty(256 * 1024 * 1024, dtype=torch.uint8, device=device)
         wrapper = BatchPrefillWithRaggedKVCacheWrapper(
             ws, kv_layout="NHD", backend=backend,
-            block_diffusion=True, dllm_block_size=B,
+            block_extend=True, dllm_block_size=B,
         )
         wrapper.plan(
             qo_indptr=qo_indptr, kv_indptr=kv_indptr,
@@ -881,7 +881,7 @@ def test_block_diffusion_named_option(
         del wrapper
         torch.cuda.empty_cache()
 
-    # --- Paged: existing wrapper with block_diffusion=True ---
+    # --- Paged: existing wrapper with block_extend=True ---
     page_size = 16
     num_pages = (kv_len + page_size - 1) // page_size
     # Page the same K/V tensors used by the ragged path and reference; otherwise
@@ -902,7 +902,7 @@ def test_block_diffusion_named_option(
         ws = torch.empty(256 * 1024 * 1024, dtype=torch.uint8, device=device)
         wrapper = BatchPrefillWithPagedKVCacheWrapper(
             ws, kv_layout="NHD", backend=backend,
-            block_diffusion=True, dllm_block_size=B,
+            block_extend=True, dllm_block_size=B,
         )
         wrapper.plan(
             qo_indptr=qo_indptr, paged_kv_indptr=paged_kv_indptr,
@@ -922,15 +922,15 @@ def test_block_diffusion_named_option(
     if verbose:
         for k_, d in results.items():
             print(f"  {k_}: max_diff={d:.6f} [{'PASS' if d < tol else 'FAIL'}]")
-        print(f"  block_diffusion named-option overall: {'ALL PASS' if all_pass else 'SOME FAILED'}")
-    assert all_pass, f"block_diffusion named-option failed: {results}"
+        print(f"  block_extend named-option overall: {'ALL PASS' if all_pass else 'SOME FAILED'}")
+    assert all_pass, f"block_extend named-option failed: {results}"
 
 
-def test_block_diffusion_single_native_option(
+def test_block_extend_single_native_option(
     verbose: bool = True,
 ):
-    """Exercise the native single-prefill block_diffusion option:
-    ``single_prefill_with_kv_cache(..., block_diffusion=True, dllm_block_size=,
+    """Exercise the native single-prefill block_extend option:
+    ``single_prefill_with_kv_cache(..., block_extend=True, dllm_block_size=,
     q_offset=, kv_offset=)`` (reviewers' design #2 "complete convergence" for the
     single-request path — no flashinfer/dllm API needed). Cross-checks vs the
     kv_offset-aware reference AND vs the dedicated ``block_extend_attention_with_offset``
@@ -966,7 +966,7 @@ def test_block_diffusion_single_native_option(
             # Native path: the canonical reviewer-preferred entry point.
             out_native = single_prefill_with_kv_cache(
                 q, k, v, sm_scale=sm_scale,
-                block_diffusion=True, dllm_block_size=B,
+                block_extend=True, dllm_block_size=B,
                 q_offset=q_offset, kv_offset=kv_offset,
                 backend=backend, return_lse=False,
             )
@@ -987,8 +987,8 @@ def test_block_diffusion_single_native_option(
     if verbose:
         for k_, d in results.items():
             print(f"  {k_}: max_diff={d:.6f} [{'PASS' if d < tol else 'FAIL'}]")
-        print(f"  block_diffusion single-native overall: {'ALL PASS' if all_pass else 'SOME FAILED'}")
-    assert all_pass, f"block_diffusion single-native failed: {results}"
+        print(f"  block_extend single-native overall: {'ALL PASS' if all_pass else 'SOME FAILED'}")
+    assert all_pass, f"block_extend single-native failed: {results}"
 
 
 def test_sglang_vs_block_extend_cascade(
