@@ -3,7 +3,7 @@ Blockwise Extend Attention with Tile-Level Skip Optimization
 
 Optimization Principle:
 
-Use native MaskMode::kBlockExpanding to trigger kernel's built-in tile-level skip optimization:
+Use native MaskMode::kBlockExtend to trigger kernel's built-in tile-level skip optimization:
 
 1. num_iterations calculation: Precisely calculate KV tiles to iterate based on Block Expanding boundaries
    kv_valid_end = ((q_tile_end - 1) / dllm_block_size + 1) * dllm_block_size
@@ -35,7 +35,7 @@ from ..api_logging import flashinfer_api
 BLOCK_EXTEND_V2_WITH_OFFSET_VARIANT_DECL = r"""
 // For incremental Chunk Prefill scenarios:
 //   - Each chunk's Q has global offset q_offset
-//   - Kernel reads the offset directly from params.q_block_expanding_offset
+//   - Kernel reads the offset directly from params.q_block_extend_offset
 //   - position_mask internally calculates: (q_global_block >= k_block)
 
 struct BlockExtendAttentionV2WithOffset : AttentionVariantBase {
@@ -55,8 +55,8 @@ struct BlockExtendAttentionV2WithOffset : AttentionVariantBase {
     window_left = kv_len;  // No sliding window
   }
 
-  // CUDA kernel natively supports MaskMode::kBlockExpanding:
-  //   - q_offset read directly from params.q_block_expanding_offset
+  // CUDA kernel natively supports MaskMode::kBlockExtend:
+  //   - q_offset read directly from params.q_block_extend_offset
   //   - position_mask internally handles: (q_global_block >= k_block)
   //
   // Therefore LogitsMask only needs to return true
@@ -96,8 +96,8 @@ def _get_module_uri_with_offset(
 ) -> str:
     """Generate unique identifier for with offset module
 
-    v2: 4 scalar params (sm_scale, dllm_block_size, q_block_expanding_offset,
-                         kv_block_expanding_offset)
+    v2: 4 scalar params (sm_scale, dllm_block_size, q_block_extend_offset,
+                         kv_block_extend_offset)
     Old version (without _v2 suffix) only has 3 scalars, will automatically match new URI when recompilation is needed.
     """
     # dLLM closed product: restrict head_dim to what dLLM actually needs, matching the
@@ -112,7 +112,7 @@ def _get_module_uri_with_offset(
     dtype_kv = dtype if dtype_kv is None else dtype_kv
     dtype_o = dtype if dtype_o is None else dtype_o
     return (
-        f"block_expanding_{backend}_with_offset_v2_hdim{head_dim}_vo{head_dim_vo}"
+        f"block_extend_{backend}_with_offset_v2_hdim{head_dim}_vo{head_dim_vo}"
         f"_{_get_dtype_str(dtype)}_{_get_dtype_str(dtype_kv)}_{_get_dtype_str(dtype_o)}"
     )
 
@@ -124,12 +124,12 @@ def _get_module_uri_with_offset(
 #   - Requires GetAttentionUpdater() template function
 #   - Access custom parameters via params.additional_params.xxx
 #
-# FA3 kernel natively supports kBlockExpanding, so LogitsTransform only needs to return logits
+# FA3 kernel natively supports kBlockExtend, so LogitsTransform only needs to return logits
 
 BLOCK_EXTEND_V3_WITH_OFFSET_VARIANT_DECL = r"""
-// FA3 kernel natively supports MaskMode::kBlockExpanding:
+// FA3 kernel natively supports MaskMode::kBlockExtend:
 //   - get_num_kv_tiles(): Precisely calculates KV valid range based on Block Expanding boundaries
-//   - mma_f16(): BLOCK_EXPANDING template parameter controls n_masking_steps and col_limit
+//   - mma_f16(): BLOCK_EXTEND template parameter controls n_masking_steps and col_limit
 //   - position_mask: (q_global_block >= k_block) && (kv_idx < kv_len)
 //
 // Therefore LogitsTransform only needs to return logits, letting kernel's native mask logic take effect
@@ -147,7 +147,7 @@ struct BlockExtendAttentionV3WithOffset : AttentionVariantBase {
   }
 
   REGISTER_LOGITS_TRANSFORM(params, logits, batch_idx, qo_idx, kv_idx, qo_head_idx, kv_head_idx, {
-    return logits;  // kernel's native BLOCK_EXPANDING mask already handles this
+    return logits;  // kernel's native BLOCK_EXTEND mask already handles this
   });
 };
 """
@@ -166,7 +166,7 @@ def get_block_extend_module_with_offset(
     Get Block Extend Attention module with q_offset/kv_offset support.
 
     This is a thin builder over the existing single-prefill JIT path: it constructs
-    a ``JitSpec`` for the block-extend variant (fixed ``mask_mode=kBlockExpanding``)
+    a ``JitSpec`` for the block-extend variant (fixed ``mask_mode=kBlockExtend``)
     and lets ``JitSpec.build_and_load()`` handle the AOT-vs-JIT dispatch with its
     file-lock guard — the same path every other single-prefill call uses. There is
     deliberately NO separate module cache and no hand-rolled AOT/JIT branch here
@@ -221,7 +221,7 @@ def get_block_extend_module_with_offset(
         head_dim_vo=head_dim_vo,
         additional_tensor_names=[],
         additional_tensor_dtypes=[],
-        additional_scalar_names=["sm_scale", "dllm_block_size", "q_block_expanding_offset", "kv_block_expanding_offset"],
+        additional_scalar_names=["sm_scale", "dllm_block_size", "q_block_extend_offset", "kv_block_extend_offset"],
         additional_scalar_dtypes=["double", "int64_t", "int64_t", "int64_t"],
         variant_name=variant_name,
         variant_decl=variant_decl,
@@ -245,7 +245,7 @@ def block_extend_attention_with_offset(
 
     Thin convenience wrapper over the native
     :func:`flashinfer.prefill.single_prefill_with_kv_cache` with
-    ``block_diffusion=True``. The canonical entry point is the native API; this
+    ``block_extend=True``. The canonical entry point is the native API; this
     shim is kept for the SGLang-dLLM one-call ergonomics (reviewers' design #2 /
     "keep shim"). See docs/block-extend-design-response.md §2.2.2.
 
@@ -268,7 +268,7 @@ def block_extend_attention_with_offset(
     return single_prefill_with_kv_cache(
         q, k, v,
         sm_scale=sm_scale,
-        block_diffusion=True,
+        block_extend=True,
         dllm_block_size=dllm_block_size,
         q_offset=q_offset,
         kv_offset=kv_offset,

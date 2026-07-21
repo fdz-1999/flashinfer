@@ -25,8 +25,8 @@ from typing import Optional, Tuple, Union, List, Dict, Any
 from ..prefill import (
     BatchPrefillWithRaggedKVCacheWrapper,
     BatchPrefillWithPagedKVCacheWrapper,
-    _prepare_block_diffusion_offset,
-    _validate_block_diffusion_offset_buffer,
+    _prepare_block_extend_offset,
+    _validate_block_extend_offset_buffer,
 )
 from ..jit import gen_customize_batch_prefill_module
 from ..jit import env as jit_env
@@ -257,7 +257,7 @@ def _get_batch_be_module_uri(
         )
 
     return (
-        f"batch_prefill_block_expanding_hd{head_dim}_{dtype_uri[dtype]}_"
+        f"batch_prefill_block_extend_hd{head_dim}_{dtype_uri[dtype]}_"
         f"idx{idtype_uri[idtype]}_vo{head_dim_vo}_{dtype_uri[dtype_kv]}_"
         f"{dtype_uri[dtype_o]}"
     )
@@ -325,7 +325,7 @@ struct BatchBlockExtendOffsetAttentionFA3 : AttentionVariantBase {
 """
 
 
-def build_block_diffusion_jit_args(
+def build_block_extend_jit_args(
     head_dim: int,
     dtype: torch.dtype,
     idtype: torch.dtype,
@@ -342,8 +342,8 @@ def build_block_diffusion_jit_args(
 
     This is the single source of truth for the dLLM variant wiring (variant decl,
     offset tensor slots, sm_scale/dllm_block_size scalar slots, mask_mode fixed to
-    kBlockExpanding). Both the dedicated ``flashinfer.dllm`` convenience wrappers
-    and the named ``block_diffusion=`` option on the existing wrappers call it, so
+    kBlockExtend). Both the dedicated ``flashinfer.dllm`` convenience wrappers
+    and the named ``block_extend=`` option on the existing wrappers call it, so
     the mask option is exposed on the existing prefill APIs (reviewers' design #2)
     rather than as a new API family. See docs/block-extend-design-response.md §2.
     """
@@ -372,7 +372,7 @@ def build_block_diffusion_jit_args(
 
     jit_args = [
         uri, dtype, dtype_kv, dtype_o, idtype, head_dim, head_dim_vo,
-        ["maybe_q_block_expanding_offset", "maybe_kv_block_expanding_offset"],
+        ["maybe_q_block_extend_offset", "maybe_kv_block_extend_offset"],
         [dtype_map_for_idtype(idtype), dtype_map_for_idtype(idtype)],
         ["sm_scale", "dllm_block_size"], ["double", "int64_t"],
         variant_name, variant_decl,
@@ -380,15 +380,15 @@ def build_block_diffusion_jit_args(
     jit_kwargs = {
         "pos_encoding_mode": 0, "use_sliding_window": False,
         "use_logits_soft_cap": False, "use_fp16_qk_reduction": False,
-        # Dedicated dLLM URIs compile ONLY mask_mode=kBlockExpanding (=4). The
+        # Dedicated dLLM URIs compile ONLY mask_mode=kBlockExtend (=4). The
         # delegation switch in get_customize_batch_prefill_module routes this
         # through gen_customize_block_extend_batch_prefill_module.
-        "mask_modes": [MaskMode.BLOCK_EXPANDING.value],
+        "mask_modes": [MaskMode.BLOCK_EXTEND.value],
     }
     return jit_args, jit_kwargs
 
 
-def _prepare_shim_block_diffusion_offset(
+def _prepare_shim_block_extend_offset(
     offsets: Optional[torch.Tensor],
     *,
     name: str,
@@ -399,7 +399,7 @@ def _prepare_shim_block_diffusion_offset(
     """Apply the native block-diffusion validation without silently moving devices."""
     if torch.is_tensor(offsets) and offsets.device != device:
         raise ValueError(f"{name} must be on {device}, got {offsets.device}")
-    return _prepare_block_diffusion_offset(
+    return _prepare_block_extend_offset(
         offsets,
         name=name,
         batch_size=batch_size,
@@ -471,7 +471,7 @@ class BatchBlockExtendPagedOffsetWrapper:
         )
         self._backend = effective_backend
 
-        jit_args, jit_kwargs = build_block_diffusion_jit_args(
+        jit_args, jit_kwargs = build_block_extend_jit_args(
             head_dim=head_dim_qk,
             dtype=dtype_q,
             idtype=idtype,
@@ -520,14 +520,14 @@ class BatchBlockExtendPagedOffsetWrapper:
             self._create_inner_wrapper(*jit_axes)
 
         batch_size = qo_indptr.numel() - 1
-        q_offsets = _prepare_shim_block_diffusion_offset(
+        q_offsets = _prepare_shim_block_extend_offset(
             q_offsets,
             name="q_offsets",
             batch_size=batch_size,
             idtype=qo_indptr.dtype,
             device=self._device,
         )
-        kv_offsets = _prepare_shim_block_diffusion_offset(
+        kv_offsets = _prepare_shim_block_extend_offset(
             kv_offsets,
             name="kv_offsets",
             batch_size=batch_size,
@@ -539,7 +539,7 @@ class BatchBlockExtendPagedOffsetWrapper:
         
         if self._use_cuda_graph:
             if q_offsets is not None:
-                q_offsets_buf = _validate_block_diffusion_offset_buffer(
+                q_offsets_buf = _validate_block_extend_offset_buffer(
                     self._q_offsets_buf,
                     name="q_offsets_buf",
                     batch_size=batch_size,
@@ -552,7 +552,7 @@ class BatchBlockExtendPagedOffsetWrapper:
                 self._q_offsets = None
             
             if kv_offsets is not None:
-                kv_offsets_buf = _validate_block_diffusion_offset_buffer(
+                kv_offsets_buf = _validate_block_extend_offset_buffer(
                     self._kv_offsets_buf,
                     name="kv_offsets_buf",
                     batch_size=batch_size,
@@ -574,7 +574,7 @@ class BatchBlockExtendPagedOffsetWrapper:
             head_dim_qk=head_dim, head_dim_vo=head_dim_vo, page_size=page_size,
             causal=False, pos_encoding_mode="NONE",
             q_data_type=q_data_type, kv_data_type=kv_data_type,
-            o_data_type=o_data_type, mask_mode=MaskMode.BLOCK_EXPANDING.value,
+            o_data_type=o_data_type, mask_mode=MaskMode.BLOCK_EXTEND.value,
         )
     
     def run(
@@ -655,7 +655,7 @@ class BatchBlockExtendRaggedOffsetWrapper:
         )
         self._backend = effective_backend
 
-        jit_args, jit_kwargs = build_block_diffusion_jit_args(
+        jit_args, jit_kwargs = build_block_extend_jit_args(
             head_dim=head_dim_qk,
             dtype=dtype_q,
             idtype=idtype,
@@ -701,14 +701,14 @@ class BatchBlockExtendRaggedOffsetWrapper:
             self._create_inner_wrapper(*jit_axes)
 
         batch_size = qo_indptr.numel() - 1
-        q_offsets = _prepare_shim_block_diffusion_offset(
+        q_offsets = _prepare_shim_block_extend_offset(
             q_offsets,
             name="q_offsets",
             batch_size=batch_size,
             idtype=qo_indptr.dtype,
             device=self._device,
         )
-        kv_offsets = _prepare_shim_block_diffusion_offset(
+        kv_offsets = _prepare_shim_block_extend_offset(
             kv_offsets,
             name="kv_offsets",
             batch_size=batch_size,
@@ -720,7 +720,7 @@ class BatchBlockExtendRaggedOffsetWrapper:
         
         if self._use_cuda_graph:
             if q_offsets is not None:
-                q_offsets_buf = _validate_block_diffusion_offset_buffer(
+                q_offsets_buf = _validate_block_extend_offset_buffer(
                     self._q_offsets_buf,
                     name="q_offsets_buf",
                     batch_size=batch_size,
@@ -733,7 +733,7 @@ class BatchBlockExtendRaggedOffsetWrapper:
                 self._q_offsets = None
             
             if kv_offsets is not None:
-                kv_offsets_buf = _validate_block_diffusion_offset_buffer(
+                kv_offsets_buf = _validate_block_extend_offset_buffer(
                     self._kv_offsets_buf,
                     name="kv_offsets_buf",
                     batch_size=batch_size,
@@ -754,7 +754,7 @@ class BatchBlockExtendRaggedOffsetWrapper:
             head_dim_qk=head_dim, head_dim_vo=head_dim_vo,
             causal=False, pos_encoding_mode="NONE",
             q_data_type=q_data_type, kv_data_type=kv_data_type,
-            o_data_type=o_data_type, mask_mode=MaskMode.BLOCK_EXPANDING.value,
+            o_data_type=o_data_type, mask_mode=MaskMode.BLOCK_EXTEND.value,
         )
     
     def run(
